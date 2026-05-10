@@ -9,7 +9,7 @@ import Chat from './Chat';
 import MyProfile from './MyProfile';
 import Likes from './Likes';
 import Today from './Today';
-import { THEMES, DEFAULT_THEME } from './themes';
+import { THEMES } from './themes';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
@@ -62,7 +62,7 @@ function App() {
 
   useEffect(() => {
     document.body.style.background = t.bodyBg;
-  }, [theme]);
+  }, [theme, t.bodyBg]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user) return;
