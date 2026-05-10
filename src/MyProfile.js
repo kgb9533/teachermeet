@@ -1,0 +1,249 @@
+import React, { useState } from 'react';
+import { db } from './firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import Verify from './Verify';
+import Admin from './Admin';
+
+const SUBJECTS = ['국어', '영어', '수학', '과학', '사회', '역사', '체육', '음악', '미술', '기술', '도덕', '초등 전과목', '기타'];
+const REGIONS = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
+const LEVELS = ['유치원', '초등학교', '중학교', '고등학교', '대학교', '학원/교습소', '기타'];
+const MBTI_LIST = ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP'];
+const HOBBIES = ['독서', '영화감상', '음악감상', '운동', '요리', '여행', '게임', '등산', '사진', '그림', '악기', '춤', '카페탐방', '맛집탐방', '반려동물', '드라마', '유튜브', '쇼핑', '캠핑', '자전거'];
+const FOOD_PREFS = ['한식', '중식', '일식', '양식', '분식', '채식', '해산물', '고기류', '디저트', '뭐든 잘 먹어요'];
+const TRAVEL_STYLES = ['계획적인 여행', '즉흥적인 여행', '힐링 여행', '액티비티 여행', '문화탐방', '맛집투어', '혼자 여행 선호', '함께 여행 선호'];
+const DRINK_OPTIONS = ['전혀 안 마셔요', '가끔 마셔요', '즐겨 마셔요', '자주 마셔요'];
+const SMOKE_OPTIONS = ['비흡연', '흡연', '금연 중'];
+const RELIGION_OPTIONS = ['없음', '기독교', '천주교', '불교', '이슬람교', '기타'];
+const BODY_TYPES = ['마른 편', '보통', '통통한 편', '근육질', '말하기 불편해요'];
+const MARRIAGE_OPTIONS = ['진지한 만남 원해요', '자연스럽게 발전하면 좋겠어요', '아직 잘 모르겠어요', '가벼운 만남도 괜찮아요'];
+const DATE_STYLES = ['카페에서 대화', '맛집 탐방', '영화 관람', '산책 / 드라이브', '전시회 / 공연', '액티비티', '집에서 편하게', '상대방에게 맞출게요'];
+const WEEKEND_ACTIVITIES = ['집에서 쉬어요', '친구들 만나요', '운동해요', '취미 활동해요', '여행 가요', '맛집 탐방해요', '문화생활 즐겨요', '그때그때 달라요'];
+const LOVE_STYLES = ['다정하고 애정표현 많이', '서로 존중하며 자유롭게', '함께하는 시간 중시', '각자의 시간도 중요', '친구같은 연애', '설레는 연애'];
+
+const CLOUD_NAME = 'ds4tdz6ps';
+const UPLOAD_PRESET = 'ml_default';
+
+function SectionTitle({ title, isOpen, onToggle }) {
+  return (
+    <div onClick={onToggle} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', marginTop: 12, marginBottom: isOpen ? 12 : 0, background: '#FFF0EB', borderRadius: 14, cursor: 'pointer', border: '1.5px solid #FDBCAA' }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#C23B22', fontFamily: 'Nunito, sans-serif' }}>{title}</div>
+      <div style={{ fontSize: 16, color: '#F4845F', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</div>
+    </div>
+  );
+}
+
+function MyProfile({ user, userProfile, onUpdate, onLogout }) {
+  const [name, setName] = useState(userProfile.name || '');
+  const [age, setAge] = useState(userProfile.age || '');
+  const [gender, setGender] = useState(userProfile.gender || '');
+  const [height, setHeight] = useState(userProfile.height || '');
+  const [bodyType, setBodyType] = useState(userProfile.bodyType || '');
+  const [mbti, setMbti] = useState(userProfile.mbti || '');
+  const [religion, setReligion] = useState(userProfile.religion || '');
+  const [drink, setDrink] = useState(userProfile.drink || '');
+  const [smoke, setSmoke] = useState(userProfile.smoke || '');
+  const [marriageIntent, setMarriageIntent] = useState(userProfile.marriageIntent || '');
+  const [level, setLevel] = useState(userProfile.level || '');
+  const [subject, setSubject] = useState(userProfile.subject || '');
+  const [region, setRegion] = useState(userProfile.region || '');
+  const [hobbies, setHobbies] = useState(userProfile.hobbies || []);
+  const [foodPref, setFoodPref] = useState(userProfile.foodPref || '');
+  const [travelStyle, setTravelStyle] = useState(userProfile.travelStyle || '');
+  const [weekendActivity, setWeekendActivity] = useState(userProfile.weekendActivity || '');
+  const [loveStyle, setLoveStyle] = useState(userProfile.loveStyle || '');
+  const [dateStyle, setDateStyle] = useState(userProfile.dateStyle || '');
+  const [myCharm, setMyCharm] = useState(userProfile.myCharm || '');
+  const [idealType, setIdealType] = useState(userProfile.idealType || '');
+  const [bio, setBio] = useState(userProfile.bio || '');
+  const [photos, setPhotos] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState(userProfile.photoUrls || (userProfile.photoUrl ? [userProfile.photoUrl] : []));
+  const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [openSections, setOpenSections] = useState({ '기본 정보': true, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false });
+
+  const toggleHobby = (h) => setHobbies(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
+  const toggleSection = (title) => setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
+
+  const handlePhotoChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    const existingUrls = photoPreviews.filter(p => p.startsWith('http'));
+    const newPreviews = files.map(f => URL.createObjectURL(f));
+    const combined = [...existingUrls, ...newPreviews].slice(0, 6);
+    setPhotos(prev => [...prev, ...files].slice(0, 6 - existingUrls.length));
+    setPhotoPreviews(combined);
+  };
+
+  const removePhoto = (idx) => {
+    const newPreviews = photoPreviews.filter((_, i) => i !== idx);
+    setPhotoPreviews(newPreviews);
+    if (!photoPreviews[idx].startsWith('http')) setPhotos(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const uploadPhotos = async () => {
+    const existingUrls = photoPreviews.filter(p => p.startsWith('http'));
+    if (!photos.length) return existingUrls;
+    const newUrls = await Promise.all(photos.map(async (photo) => {
+      const formData = new FormData();
+      formData.append('file', photo);
+      formData.append('upload_preset', UPLOAD_PRESET);
+      formData.append('cloud_name', CLOUD_NAME);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+      const data = await res.json();
+      return data.secure_url;
+    }));
+    return [...existingUrls, ...newUrls].slice(0, 6);
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const photoUrls = await uploadPhotos();
+      let lat = userProfile.lat || null; let lng = userProfile.lng || null;
+      if (navigator.geolocation) {
+        await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition((pos) => { lat = pos.coords.latitude; lng = pos.coords.longitude; resolve(); }, () => resolve());
+        });
+      }
+      const updated = { name, age: parseInt(age), gender, height, bodyType, mbti, religion, drink, smoke, marriageIntent, level, subject, region, hobbies, foodPref, travelStyle, weekendActivity, loveStyle, dateStyle, myCharm, idealType, bio, photoUrl: photoUrls[0] || null, photoUrls, ...(lat && { lat }), ...(lng && { lng }) };
+      await updateDoc(doc(db, 'users', user.uid), updated);
+      onUpdate({ ...userProfile, ...updated });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) { alert('저장 중 오류가 발생했어요.'); }
+    setLoading(false);
+  };
+
+  const chipStyle = (selected) => ({
+    padding: '8px 16px', borderRadius: 20, cursor: 'pointer', fontSize: 13,
+    border: selected ? '2px solid #F4845F' : '1.5px solid #FDBCAA',
+    background: selected ? '#FFF0EB' : 'white',
+    color: selected ? '#C23B22' : '#aaa',
+    fontWeight: selected ? 700 : 400,
+    fontFamily: 'Nunito, sans-serif', transition: 'all 0.15s'
+  });
+
+  return (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', background: '#FFF8F5' }}>
+      <div style={{ background: 'white', padding: '18px 24px', borderBottom: '1px solid #FDBCAA' }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>내 프로필</div>
+        <div style={{ fontSize: 13, color: '#FDBCAA', marginTop: 2, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>정보를 수정하고 저장해주세요</div>
+      </div>
+
+      <div style={{ padding: '24px 24px 40px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>프로필 사진 (최대 6장)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+            {[0,1,2,3,4,5].map(idx => (
+              <div key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: 16, overflow: 'hidden', background: '#FFF0EB', border: '2px dashed #FDBCAA', cursor: 'pointer' }}
+                onClick={() => !photoPreviews[idx] && document.getElementById('editPhotoInput').click()}>
+                {photoPreviews[idx] ? (
+                  <>
+                    <img src={photoPreviews[idx]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button onClick={(e) => { e.stopPropagation(); removePhoto(idx); }} style={{ position: 'absolute', top: 4, right: 4, width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                    {idx === 0 && <div style={{ position: 'absolute', bottom: 4, left: 4, background: '#F4845F', color: 'white', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10 }}>대표</div>}
+                  </>
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 24 }}>📷</span>
+                    {idx === 0 && <span style={{ fontSize: 10, color: '#FDBCAA' }}>필수</span>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <input id="editPhotoInput" type="file" accept="image/*" multiple onChange={handlePhotoChange} style={{ display: 'none' }} />
+          <button onClick={() => document.getElementById('editPhotoInput').click()} style={{ width: '100%', padding: '12px', background: '#FFF0EB', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#C23B22', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>📷 사진 추가하기 ({photoPreviews.length}/6)</button>
+        </div>
+
+        <SectionTitle title="기본 정보" isOpen={openSections['기본 정보']} onToggle={() => toggleSection('기본 정보')} />
+        {openSections['기본 정보'] && (
+          <div>
+            <div className="input-group"><label>닉네임</label><input type="text" value={name} onChange={e => setName(e.target.value)} /></div>
+            <div className="input-group"><label>나이</label><input type="number" value={age} onChange={e => setAge(e.target.value)} /></div>
+            <div className="input-group">
+              <label>성별</label>
+              <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                {['남성', '여성'].map(g => (
+                  <button key={g} onClick={() => setGender(g)} style={{ flex: 1, padding: '13px', borderRadius: 14, cursor: 'pointer', border: gender === g ? '2px solid #F4845F' : '1.5px solid #FDBCAA', background: gender === g ? '#FFF0EB' : 'white', color: gender === g ? '#C23B22' : '#aaa', fontWeight: gender === g ? 700 : 400, fontSize: 15, fontFamily: 'Nunito, sans-serif' }}>{g}</button>
+                ))}
+              </div>
+            </div>
+            <div className="input-group"><label>키 (cm)</label><input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="예: 170" /></div>
+            <div className="input-group"><label>체형</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{BODY_TYPES.map(b => <button key={b} onClick={() => setBodyType(b)} style={chipStyle(bodyType === b)}>{b}</button>)}</div></div>
+            <div className="input-group"><label>MBTI</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{MBTI_LIST.map(m => <button key={m} onClick={() => setMbti(m)} style={chipStyle(mbti === m)}>{m}</button>)}</div></div>
+          </div>
+        )}
+
+        <SectionTitle title="신상 상세" isOpen={openSections['신상 상세']} onToggle={() => toggleSection('신상 상세')} />
+        {openSections['신상 상세'] && (
+          <div>
+            <div className="input-group"><label>음주</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{DRINK_OPTIONS.map(d => <button key={d} onClick={() => setDrink(d)} style={chipStyle(drink === d)}>{d}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>흡연</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{SMOKE_OPTIONS.map(s => <button key={s} onClick={() => setSmoke(s)} style={chipStyle(smoke === s)}>{s}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>종교</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{RELIGION_OPTIONS.map(r => <button key={r} onClick={() => setReligion(r)} style={chipStyle(religion === r)}>{r}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label>결혼 의향</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+                {MARRIAGE_OPTIONS.map(m => <button key={m} onClick={() => setMarriageIntent(m)} style={{ ...chipStyle(marriageIntent === m), padding: '12px 16px', borderRadius: 14, textAlign: 'left' }}>{m}</button>)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <SectionTitle title="근무 정보" isOpen={openSections['근무 정보']} onToggle={() => toggleSection('근무 정보')} />
+        {openSections['근무 정보'] && (
+          <div>
+            <div className="input-group"><label>학교 급별</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{LEVELS.map(l => <button key={l} onClick={() => setLevel(l)} style={chipStyle(level === l)}>{l}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>담당 과목</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{SUBJECTS.map(s => <button key={s} onClick={() => setSubject(s)} style={chipStyle(subject === s)}>{s}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>근무 지역</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{REGIONS.map(r => <button key={r} onClick={() => setRegion(r)} style={chipStyle(region === r)}>{r}</button>)}</div></div>
+          </div>
+        )}
+
+        <SectionTitle title="라이프스타일" isOpen={openSections['라이프스타일']} onToggle={() => toggleSection('라이프스타일')} />
+        {openSections['라이프스타일'] && (
+          <div>
+            <div className="input-group"><label>취미</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{HOBBIES.map(h => <button key={h} onClick={() => toggleHobby(h)} style={chipStyle(hobbies.includes(h))}>{h}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>음식 취향</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{FOOD_PREFS.map(f => <button key={f} onClick={() => setFoodPref(f)} style={chipStyle(foodPref === f)}>{f}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>여행 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{TRAVEL_STYLES.map(tr => <button key={tr} onClick={() => setTravelStyle(tr)} style={chipStyle(travelStyle === tr)}>{tr}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>주말에 주로</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{WEEKEND_ACTIVITIES.map(w => <button key={w} onClick={() => setWeekendActivity(w)} style={chipStyle(weekendActivity === w)}>{w}</button>)}</div></div>
+          </div>
+        )}
+
+        <SectionTitle title="연애 스타일" isOpen={openSections['연애 스타일']} onToggle={() => toggleSection('연애 스타일')} />
+        {openSections['연애 스타일'] && (
+          <div>
+            <div className="input-group"><label>연애 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{LOVE_STYLES.map(l => <button key={l} onClick={() => setLoveStyle(l)} style={chipStyle(loveStyle === l)}>{l}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>첫 데이트 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{DATE_STYLES.map(d => <button key={d} onClick={() => setDateStyle(d)} style={chipStyle(dateStyle === d)}>{d}</button>)}</div></div>
+            <div className="input-group" style={{ marginTop: 16 }}><label>나의 장점</label><input type="text" value={myCharm} onChange={e => setMyCharm(e.target.value)} placeholder="예: 유머감각이 넘쳐요 😄" /></div>
+            <div className="input-group"><label>이상형 한 줄 소개</label><input type="text" value={idealType} onChange={e => setIdealType(e.target.value)} placeholder="예: 함께 있으면 편한 사람" /></div>
+            <div className="input-group">
+              <label>자기소개</label>
+              <textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="자유롭게 자신을 소개해주세요 😊" style={{ width: '100%', padding: '14px 18px', border: '1.5px solid #FDBCAA', borderRadius: 14, fontSize: 14, outline: 'none', resize: 'none', height: 110, fontFamily: 'Nunito, sans-serif', color: '#3D1008', lineHeight: 1.6, background: '#FFFAF8' }} />
+            </div>
+          </div>
+        )}
+
+        <div style={{ borderTop: '1px solid #FDBCAA', paddingTop: 24, marginTop: 8 }}>
+          <Verify user={user} userProfile={userProfile} onUpdate={onUpdate} />
+        </div>
+
+        <button className="btn-primary" onClick={handleSave} disabled={loading} style={{ marginTop: 24 }}>
+          {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '저장하기'}
+        </button>
+
+        {showAdmin && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 9999, display: 'flex', flexDirection: 'column' }}>
+            <Admin user={user} onBack={() => setShowAdmin(false)} />
+          </div>
+        )}
+        {user.email === 'dbdus1357@naver.com' && (
+          <button onClick={() => setShowAdmin(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#F4845F', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>🔧 관리자 페이지</button>
+        )}
+        <button onClick={onLogout} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#aaa', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>로그아웃</button>
+      </div>
+    </div>
+  );
+}
+
+export default MyProfile;
