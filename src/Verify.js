@@ -25,7 +25,7 @@ function Verify({ user, userProfile, onUpdate }) {
       } catch (e) { console.error('상태 조회 오류:', e); }
     };
     fetchStatus();
-  }, [user.uid]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFileChange = (e) => {
     const f = e.target.files[0];
