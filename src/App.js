@@ -102,7 +102,7 @@ function App() {
     } catch (e) {
       if (e.code === 'auth/invalid-credential') setError('이메일 또는 비밀번호가 틀렸어요.');
       else if (e.code === 'auth/email-already-in-use') setError('이미 가입된 이메일이에요.');
-      else if (e.code === 'auth/weak-password') setError('비밀번호는 6자리 이상이어야 해요.');
+      else if (e.code === 'auth/weak-password') setError('비밀번호는 6자리 이상이어요.');
       else setError('오류가 발생했어요. 다시 시도해주세요.');
     }
     setLoading(false);
@@ -151,18 +151,6 @@ function App() {
         />
       )}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {tab === 'swipe' && (
-          <>
-            <div className="header">
-              <div className="logo" style={{ cursor: 'pointer' }} onClick={() => setTab('swipe')}>🍎 티처밋</div>
-              <button onClick={handleLogout} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 14px', color: '#F4845F', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
-            </div>
-            <Swipe user={user} userProfile={userProfile} theme={theme}
-              onMatch={(target) => { setMatchedUser(target); if (tab !== 'chat') setChatBadge(prev => prev + 1); }}
-              onLogout={handleLogout}
-            />
-          </>
-        )}
         {tab === 'swipe' && (
           <>
             <div className="header">
