@@ -75,7 +75,7 @@ function Verify({ user, userProfile, onUpdate }) {
         <div>
           <div style={{ background: '#FFF0EB', borderRadius: 16, padding: '16px', marginBottom: 20, border: '1.5px solid #FDBCAA' }}>
             <div style={{ fontSize: 14, color: '#C23B22', fontWeight: 700, marginBottom: 6, fontFamily: 'Nunito, sans-serif' }}>📋 인증 방법</div>
-            <div style={{ fontSize: 13, color: '#F4845F', lineHeight: 1.7, fontFamily: 'Nunito, sans-serif' }}>재직증명서 또는 교원자격증을 업로드해주세요.<br />개인정보는 안전하게 보호되며 인증 목적으로만 사용돼요.</div>
+            <div style={{ fontSize: 13, color: '#F4845F', lineHeight: 1.7, fontFamily: 'Nunito, sans-serif' }}>재직증명서 또는 교원자격증, 이 외에 인증이 어려운 경우 최근 근무하고 계신 근무지의 급여내역을 올려주세요.<br />개인정보는 안전하게 보호하는 목적으로만 사용됩니다.</div>
           </div>
 
           <div onClick={() => document.getElementById('verifyFileInput').click()} style={{ border: '2px dashed #FDBCAA', borderRadius: 16, padding: '32px', textAlign: 'center', cursor: 'pointer', background: fileName ? '#FFF0EB' : 'white', marginBottom: 16 }}>
