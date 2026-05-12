@@ -84,23 +84,13 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    window.history.pushState({ tab: 'home' }, '');
-    window.history.pushState({ tab: 'home' }, '');
-  }, []);
-
-  useEffect(() => {
-    const handlePopState = (e) => {
-      if (e.state?.tab) {
-        setTab(e.state.tab);
-      } else {
-        setTab('home');
-      }
-      window.history.pushState({ tab: tab }, '');
-      window.history.pushState({ tab: tab }, '');
+    const handlePopState = () => {
+      window.history.pushState(null, '');
     };
+    window.history.pushState(null, '');
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [tab]);
+  }, []);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (u) => {
@@ -244,7 +234,6 @@ function App() {
           <button key={item.id} onClick={() => {
             setTimeout(() => setTab(item.id), 50);
             if (item.id === 'chat') setChatBadge(0);
-            window.history.pushState({ tab: item.id }, '');
           }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px', position: 'relative' }}>
             <div style={{ position: 'relative' }}>
               {item.id === 'home' ? (
