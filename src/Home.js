@@ -129,7 +129,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat 
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5', overflowY: 'auto' }}>
       {/* 헤더 */}
       <div style={{ background: 'white', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 18px, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>🍎 티처밋</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>🍎 티처밋</div>
       </div>
 
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
