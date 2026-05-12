@@ -68,19 +68,21 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat 
               icon: '🧡',
               title: `${p.name} 선생님이 좋아요를 눌렀어요`,
               sub: `${p.region} · ${p.level} · ${p.subject}`,
-              badge: 'new'
+              badge: 'new',
+              onClick: onGoLikes
             });
           }
         }
 
         if (myMatches > 0) {
           activities.push({
-            type: 'match',
-            icon: '💬',
-            title: `${myMatches}명의 선생님과 매칭됐어요`,
-            sub: '채팅을 시작해보세요!',
-            badge: 'normal'
-          });
+          type: 'match',
+          icon: '💬',
+          title: `${myMatches}명의 선생님과 매칭됐어요`,
+          sub: '채팅을 시작해보세요!',
+          badge: 'normal',
+          onClick: onGoChat
+        });
         }
 
         activities.push({
@@ -88,7 +90,8 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat 
           icon: '⭐',
           title: '오늘의 추천이 도착했어요',
           sub: '나와 잘 맞는 선생님을 만나보세요',
-          badge: 'normal'
+          badge: 'normal',
+          onClick: onGoToday
         });
 
         setRecentActivity(activities);
@@ -212,11 +215,12 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat 
                     <div style={{ fontSize: 12, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>{act.title}</div>
                     <div style={{ fontSize: 10, color: '#FDBCAA', fontWeight: 600, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>{act.sub}</div>
                   </div>
-                  <div style={{
+                  <div onClick={act.onClick} style={{
                     fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 10, flexShrink: 0,
                     background: act.badge === 'new' ? 'linear-gradient(135deg, #F4845F, #E8603A)' : '#FFF0EB',
                     color: act.badge === 'new' ? 'white' : '#C23B22',
-                    fontFamily: 'Nunito, sans-serif'
+                    fontFamily: 'Nunito, sans-serif',
+                    cursor: act.onClick ? 'pointer' : 'default'
                   }}>{act.badge === 'new' ? 'NEW' : '보기'}</div>
                 </div>
               ))}

@@ -42,9 +42,8 @@ function Likes({ user, onMatch }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '18px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>🧡 좋아요</div>
-        <div style={{ fontSize: 13, color: '#FDBCAA', marginTop: 2, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
+      <div style={{ background: 'white', padding: '6px 24px', borderBottom: '1px solid #FDBCAA' }}>
+        <div style={{ fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
           {likedMe.length > 0 ? `${likedMe.length}명이 나를 좋아했어요!` : '아직 없어요'}
         </div>
       </div>

@@ -174,6 +174,17 @@ function App() {
             onGoChat={() => setTab('chat')}
           />
         )}
+        {tab !== 'swipe' && tab !== 'home' && (
+          <div style={{ background: 'white', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #FDBCAA' }}>
+            <div onClick={() => setTab('home')} style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif', cursor: 'pointer' }}>🍎 티처밋</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif' }}>
+              {tab === 'likes' && '좋아요 💜'}
+              {tab === 'today' && '추천 ⭐'}
+              {tab === 'chat' && '매칭 💬'}
+              {tab === 'myprofile' && '프로필 👤'}
+            </div>
+          </div>
+        )}
         {tab === 'likes' && <Likes user={user} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'today' && <Today user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'chat' && <Chat user={user} theme={theme} />}

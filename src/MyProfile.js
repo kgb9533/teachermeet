@@ -126,9 +126,8 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '18px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>내 프로필</div>
-        <div style={{ fontSize: 13, color: '#FDBCAA', marginTop: 2, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>정보를 수정하고 저장해주세요</div>
+      <div style={{ background: 'white', padding: '6px 24px', borderBottom: '1px solid #FDBCAA' }}>
+        <div style={{ fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>정보를 수정하고 저장해주세요</div>
       </div>
 
       <div style={{ padding: '24px 24px 40px', display: 'flex', flexDirection: 'column' }}>

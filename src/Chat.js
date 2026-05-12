@@ -137,9 +137,8 @@ function Chat({ user }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '18px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>매칭 목록</div>
-        <div style={{ fontSize: 13, color: '#FDBCAA', marginTop: 2, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>매칭된 선생님들이에요 🧡</div>
+      <div style={{ background: 'white', padding: '6px 24px', borderBottom: '1px solid #FDBCAA' }}>
+        <div style={{ fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>매칭된 선생님들이에요 🧡</div>
       </div>
 
       {loading ? (
