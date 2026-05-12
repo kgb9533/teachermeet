@@ -9,6 +9,7 @@ import Chat from './Chat';
 import MyProfile from './MyProfile';
 import Likes from './Likes';
 import Today from './Today';
+import Home from './Home';
 import { THEMES } from './themes';
 import './App.css';
 
@@ -45,7 +46,7 @@ function App() {
   const [userProfile, setUserProfile] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [matchedUser, setMatchedUser] = useState(null);
-  const [tab, setTab] = useState('swipe');
+  const [tab, setTab] = useState('home');
   const [chatBadge, setChatBadge] = useState(0);
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
@@ -163,6 +164,16 @@ function App() {
             />
           </>
         )}
+        {tab === 'home' && (
+          <Home
+            user={user}
+            userProfile={userProfile}
+            onStartMatch={() => setTab('swipe')}
+            onGoLikes={() => setTab('likes')}
+            onGoToday={() => setTab('today')}
+            onGoChat={() => setTab('chat')}
+          />
+        )}
         {tab === 'likes' && <Likes user={user} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'today' && <Today user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'chat' && <Chat user={user} theme={theme} />}
@@ -182,7 +193,7 @@ function App() {
         {[
           { id: 'likes', icon: '🧡', label: '좋아요' },
           { id: 'today', icon: '⭐', label: '추천' },
-          { id: 'swipe', icon: '🍎', label: '홈' },
+          { id: 'home', icon: '🍎', label: '홈' },
           { id: 'chat', icon: '💬', label: '매칭' },
           { id: 'myprofile', icon: '👤', label: '프로필' },
         ].map(item => (
