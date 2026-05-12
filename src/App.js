@@ -163,6 +163,18 @@ function App() {
             />
           </>
         )}
+        {tab === 'swipe' && (
+          <>
+            <div className="header">
+              <div className="logo" style={{ cursor: 'pointer' }} onClick={() => setTab('swipe')}>🍎 티처밋</div>
+              <button onClick={handleLogout} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 14px', color: '#F4845F', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
+            </div>
+            <Swipe user={user} userProfile={userProfile} theme={theme}
+              onMatch={(target) => { setMatchedUser(target); if (tab !== 'chat') setChatBadge(prev => prev + 1); }}
+              onLogout={handleLogout}
+            />
+          </>
+        )}
         {tab === 'likes' && <Likes user={user} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'today' && <Today user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'chat' && <Chat user={user} theme={theme} />}
