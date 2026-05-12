@@ -27,8 +27,19 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
   const [recentActivity, setRecentActivity] = useState([]);
   const [todayProfile, setTodayProfile] = useState(null);
   const [liked, setLiked] = useState(false);
+
+  useEffect(() => {
+    const fetchEdu = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists()) setEduBalance(snap.data().eduBalance || 0);
+      } catch (e) { console.error('에듀 잔액 오류:', e); }
+    };
+    fetchEdu();
+  }, [user.uid]);
   const [showSettings, setShowSettings] = useState(false);
   const [showEdu, setShowEdu] = useState(false);
+  const [eduBalance, setEduBalance] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -141,7 +152,13 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
           <Logo size={28} />
           <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
         </div>
-        <button onClick={() => setShowSettings(true)} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 12px', fontSize: 16, cursor: 'pointer' }}>⚙️</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div onClick={() => setShowEdu(true)} style={{ background: '#FFF0EB', border: '1px solid #FDBCAA', borderRadius: 20, padding: '5px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ fontSize: 13 }}>🎓</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>{eduBalance}</span>
+          </div>
+          <button onClick={() => setShowSettings(true)} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 12px', fontSize: 16, cursor: 'pointer' }}>⚙️</button>
+        </div>
       </div>
       {showSettings && <Settings user={user} onClose={() => setShowSettings(false)} onLogout={onLogout} onGoEdu={() => { setShowSettings(false); setShowEdu(true); }} />}
       {showEdu && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#FFF8F5', zIndex: 9999, display: 'flex', flexDirection: 'column' }}><Edu user={user} onBack={() => setShowEdu(false)} /></div>}
