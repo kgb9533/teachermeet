@@ -189,7 +189,6 @@ function App() {
           <button key={item.id} onClick={() => {
             setTab(item.id);
             if (item.id === 'chat') setChatBadge(0);
-            if (item.id !== 'swipe') window.history.pushState({ tab: item.id }, '');
           }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px', position: 'relative' }}>
             <div style={{ position: 'relative' }}>
               <span style={{ fontSize: item.id === 'swipe' ? 28 : 22, filter: item.id === 'swipe' ? 'drop-shadow(0 2px 4px rgba(244,132,95,0.4))' : 'none' }}>{item.icon}</span>
