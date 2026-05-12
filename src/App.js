@@ -85,6 +85,7 @@ function App() {
 
   useEffect(() => {
     window.history.pushState({ tab: 'home' }, '');
+    window.history.pushState({ tab: 'home' }, '');
   }, []);
 
   useEffect(() => {
@@ -94,6 +95,7 @@ function App() {
       } else {
         setTab('home');
       }
+      window.history.pushState({ tab: tab }, '');
       window.history.pushState({ tab: tab }, '');
     };
     window.addEventListener('popstate', handlePopState);
