@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import Settings from './Settings';
+import Edu from './Edu';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -27,6 +28,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
   const [todayProfile, setTodayProfile] = useState(null);
   const [liked, setLiked] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showEdu, setShowEdu] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -141,7 +143,8 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
         </div>
         <button onClick={() => setShowSettings(true)} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 12px', fontSize: 16, cursor: 'pointer' }}>⚙️</button>
       </div>
-      {showSettings && <Settings user={user} onClose={() => setShowSettings(false)} onLogout={onLogout} />}
+      {showSettings && <Settings user={user} onClose={() => setShowSettings(false)} onLogout={onLogout} onGoEdu={() => { setShowSettings(false); setShowEdu(true); }} />}
+      {showEdu && <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#FFF8F5', zIndex: 9999, display: 'flex', flexDirection: 'column' }}><Edu user={user} onBack={() => setShowEdu(false)} /></div>}
 
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
 

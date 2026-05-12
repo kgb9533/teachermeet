@@ -3,7 +3,7 @@ import { auth, db } from './firebase';
 import { sendPasswordResetEmail, deleteUser } from 'firebase/auth';
 import { doc, deleteDoc, getDocs, collection, query, where } from 'firebase/firestore';
 
-function Settings({ user, onClose, onLogout }) {
+function Settings({ user, onClose, onLogout, onGoEdu }) {
   const [notiLike, setNotiLike] = useState(true);
   const [notiChat, setNotiChat] = useState(true);
   const [notiMatch, setNotiMatch] = useState(false);
@@ -106,7 +106,21 @@ function Settings({ user, onClose, onLogout }) {
             <Item icon="📱" label="버전 정보" sub="티처밋 v1.0.0" right={<span style={{ fontSize: 11, color: '#F4845F', fontWeight: 700 }}>최신버전</span>} />
           </Section>
 
-          <button onClick={onLogout} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#ff4757', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
+          <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 16, overflow: 'hidden' }}>
+          <div style={{ padding: '10px 16px', background: '#FFF0EB', fontSize: 11, fontWeight: 800, color: '#C23B22', fontFamily: 'Nunito, sans-serif' }}>🎓 에듀</div>
+          <div onClick={onGoEdu} style={{ padding: '13px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: '#FFF0EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>🎓</div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>에듀 충전하기</div>
+                <div style={{ fontSize: 10, color: '#FDBCAA', fontWeight: 600, marginTop: 1, fontFamily: 'Nunito, sans-serif' }}>티처밋 전용 포인트</div>
+              </div>
+            </div>
+            <span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>
+          </div>
+        </div>
+
+        <button onClick={onLogout} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#ff4757', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
 
           <div style={{ height: 20 }} />
         </div>
