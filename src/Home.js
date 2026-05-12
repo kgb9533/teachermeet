@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Logo from './Logo';
+import Settings from './Settings';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -17,13 +19,14 @@ const QUOTES = [
   { text: "사랑은 시간이 지나도 변하지 않는 유일한 것이다.", author: "작자 미상" },
 ];
 
-function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat }) {
+function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat, onLogout }) {
   const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
   const [stats, setStats] = useState({ total: 0, online: 0, weeklyMatch: 0 });
   const [myStats, setMyStats] = useState({ likedMe: 0, matched: 0, iLiked: 0, todayRec: 0 });
   const [recentActivity, setRecentActivity] = useState([]);
   const [todayProfile, setTodayProfile] = useState(null);
   const [liked, setLiked] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -132,8 +135,13 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat 
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5', overflowY: 'auto' }}>
       {/* 헤더 */}
       <div style={{ background: 'white', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>🍎 티처밋</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Logo size={28} />
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
+        </div>
+        <button onClick={() => setShowSettings(true)} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 12px', fontSize: 16, cursor: 'pointer' }}>⚙️</button>
       </div>
+      {showSettings && <Settings user={user} onClose={() => setShowSettings(false)} onLogout={onLogout} />}
 
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
@@ -145,7 +153,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat 
                 안녕하세요, {userProfile.name} 선생님 👋
               </div>
             </div>
-            <div style={{ fontSize: 40 }}>🍎</div>
+            <Logo size={44} />
           </div>
 
           {/* 랜덤 명언 */}

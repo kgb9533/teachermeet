@@ -3,11 +3,25 @@ import { db } from './firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, getDocs, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { rtdb } from './firebase';
 import { ref, onValue } from 'firebase/database';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+
+const EMOJIS = {
+  '😊': ['😊','😍','🥰','😄','😆','🤗','😎','🥺','😢','😂','🤣','😅','😇','🤩','😋','😜'],
+  '❤️': ['❤️','🧡','💕','💝','💖','💗','💓','💞','💘','💟','🥰','😻','💌','💋','🌹','🌸'],
+  '👍': ['👍','👏','🙌','🤝','✌️','🤞','👋','🙏','💪','🤜','🤛','👊','✊','🫶','🤙','👌'],
+  '🎉': ['🎉','🎊','🎈','🎁','🏆','⭐','✨','🌟','💫','🔥','🎯','🍀','🌈','🎶','🎵','🎤'],
+};
 
 function ChatRoom({ user, matchId, otherUser, onBack }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [showPhoto, setShowPhoto] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState('😊');
+  const [uploading, setUploading] = useState(false);
+  const [viewImage, setViewImage] = useState(null);
   const bottomRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const q = query(collection(db, 'matches', matchId, 'messages'), orderBy('createdAt', 'asc'));
@@ -22,11 +36,33 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const text = input.trim();
-    setInput('');
-    await addDoc(collection(db, 'matches', matchId, 'messages'), { text, from: user.uid, createdAt: new Date(), readAt: null });
+  const sendMessage = async (text, type = 'text') => {
+    if (!text.trim() && type === 'text') return;
+    const content = type === 'text' ? text.trim() : text;
+    if (type === 'text') setInput('');
+    setShowEmoji(false);
+    setShowPhoto(false);
+    await addDoc(collection(db, 'matches', matchId, 'messages'), {
+      text: content, type, from: user.uid, createdAt: new Date(), readAt: null
+    });
+  };
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setShowPhoto(false);
+    try {
+      const storage = getStorage();
+      const photoRef = storageRef(storage, `chat/${matchId}/${Date.now()}_${file.name}`);
+      await uploadBytes(photoRef, file);
+      const url = await getDownloadURL(photoRef);
+      await sendMessage(url, 'image');
+    } catch (e) {
+      console.error('사진 업로드 오류:', e);
+      alert('사진 업로드 중 오류가 발생했어요.');
+    }
+    setUploading(false);
   };
 
   const formatTime = (createdAt) => {
@@ -37,6 +73,7 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* 헤더 */}
       <div style={{ background: 'white', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #FDBCAA' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#F4845F', fontSize: 22, cursor: 'pointer', padding: 0, fontWeight: 700 }}>←</button>
         <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#FFF0EB', border: '2px solid #FDBCAA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, overflow: 'hidden' }}>
@@ -51,17 +88,35 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
         </div>
       </div>
 
+      {/* 메시지 영역 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', background: '#FFF8F5', display: 'flex', flexDirection: 'column', gap: 6 }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: '#FDBCAA', fontSize: 13, marginTop: 40, lineHeight: 1.7, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-            🧡 매칭됐어요!<br />먼저 인사해보세요
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
+            <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 16, padding: '16px', textAlign: 'center', marginBottom: 4 }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>🎉</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#3D1008', marginBottom: 4, fontFamily: 'Nunito, sans-serif' }}>{otherUser?.name} 선생님과 매칭됐어요!</div>
+              <div style={{ fontSize: 12, color: '#FDBCAA', lineHeight: 1.6, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>서로 좋아요를 눌렀어요 💕<br />먼저 인사를 건네보세요!</div>
+            </div>
+            {[
+              { icon: '💡', text: '상대방의 공통점으로 대화를 시작해 보세요.' },
+              { icon: '🙏', text: '서로 존중하는 대화를 나눠주세요.' },
+              { icon: '🚨', text: '부적절한 대화는 신고해주세요.' },
+              { icon: '⚠️', text: '익명성에 가려진 공간에서 민감한 개인정보는 주의해주세요. 이로 인해 발생된 사고는 책임지지 않습니다.' },
+            ].map((tip, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: '#FFF0EB', borderRadius: 12, padding: '10px 12px' }}>
+                <span style={{ fontSize: 14, flexShrink: 0 }}>{tip.icon}</span>
+                <span style={{ fontSize: 11, color: '#C23B22', fontWeight: 600, lineHeight: 1.6, fontFamily: 'Nunito, sans-serif' }}>{tip.text}</span>
+              </div>
+            ))}
           </div>
         )}
+
         {messages.map((msg, idx) => {
           const isMine = msg.from === user.uid;
           const nextMsg = messages[idx + 1];
           const isLastInGroup = !nextMsg || nextMsg.from !== msg.from;
           const isRead = isMine && msg.readAt;
+
           return (
             <div key={msg.id}>
               <div style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start', alignItems: 'flex-end', gap: 6 }}>
@@ -70,9 +125,22 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
                     {isRead ? <span style={{ color: '#F4845F', fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>읽음</span> : <span style={{ fontFamily: 'Nunito, sans-serif' }}>{formatTime(msg.createdAt)}</span>}
                   </div>
                 )}
-                <div style={{ maxWidth: '72%', padding: '10px 16px', borderRadius: 20, fontSize: 14, lineHeight: 1.5, background: isMine ? 'linear-gradient(135deg, #F4845F, #E8603A)' : 'white', color: isMine ? 'white' : '#3D1008', borderBottomRightRadius: isMine ? 4 : 20, borderBottomLeftRadius: isMine ? 20 : 4, boxShadow: isMine ? '0 2px 8px rgba(244,132,95,0.3)' : '0 1px 4px rgba(0,0,0,0.06)', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-                  {msg.text}
-                </div>
+
+                {/* 이모지 메시지 */}
+                {msg.type === 'emoji' ? (
+                  <div style={{ fontSize: 36 }}>{msg.text}</div>
+                ) : msg.type === 'image' ? (
+                  /* 이미지 메시지 */
+                  <div style={{ maxWidth: '60%', borderRadius: 16, overflow: 'hidden', border: '1px solid #FDBCAA' }}>
+                    <img src={msg.text} alt="사진" style={{ width: '100%', display: 'block', cursor: 'pointer' }} onClick={() => setViewImage(msg.text)} />
+                  </div>
+                ) : (
+                  /* 텍스트 메시지 */
+                  <div style={{ maxWidth: '72%', padding: '10px 16px', borderRadius: 20, fontSize: 14, lineHeight: 1.5, background: isMine ? 'linear-gradient(135deg, #F4845F, #E8603A)' : 'white', color: isMine ? 'white' : '#3D1008', borderBottomRightRadius: isMine ? 4 : 20, borderBottomLeftRadius: isMine ? 20 : 4, boxShadow: isMine ? '0 2px 8px rgba(244,132,95,0.3)' : '0 1px 4px rgba(0,0,0,0.06)', fontFamily: 'Nunito, sans-serif', fontWeight: 600, border: isMine ? 'none' : '1px solid #FDBCAA' }}>
+                    {msg.text}
+                  </div>
+                )}
+
                 {!isMine && isLastInGroup && (
                   <div style={{ fontSize: 11, color: '#FDBCAA', marginBottom: 2, flexShrink: 0, fontFamily: 'Nunito, sans-serif' }}>{formatTime(msg.createdAt)}</div>
                 )}
@@ -83,10 +151,59 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ background: 'white', borderTop: '1px solid #FDBCAA', padding: '12px 16px', display: 'flex', gap: 10, alignItems: 'center' }}>
-        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage()} placeholder="메시지 입력..."
-          style={{ flex: 1, border: '1.5px solid #FDBCAA', borderRadius: 24, padding: '11px 18px', fontSize: 14, outline: 'none', fontFamily: 'Nunito, sans-serif', color: '#3D1008', background: '#FFFAF8' }} />
-        <button onClick={sendMessage} style={{ width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', color: 'white', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(244,132,95,0.35)' }}>↑</button>
+      {/* 이미지 팝업 뷰어 */}
+      {viewImage && (
+        <div onClick={() => setViewImage(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <button onClick={() => setViewImage(null)} style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: 40, height: 40, color: 'white', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          <img src={viewImage} alt="사진" style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: 16, objectFit: 'contain' }} onClick={e => e.stopPropagation()} />
+          <a href={viewImage} download target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ position: 'absolute', bottom: 30, background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 20, padding: '10px 20px', color: 'white', fontSize: 13, fontWeight: 700, textDecoration: 'none', fontFamily: 'Nunito, sans-serif' }}>⬇️ 사진 저장</a>
+        </div>
+      )}
+
+      {/* 이모티콘 패널 */}
+      {showEmoji && (
+        <div style={{ background: 'white', borderTop: '1px solid #FDBCAA', padding: '10px 12px' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+            {Object.keys(EMOJIS).map(cat => (
+              <button key={cat} onClick={() => setEmojiCategory(cat)} style={{ fontSize: 18, padding: '4px 8px', borderRadius: 10, cursor: 'pointer', border: 'none', background: emojiCategory === cat ? '#F4845F' : '#FFF0EB' }}>
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
+            {EMOJIS[emojiCategory].map(emoji => (
+              <button key={emoji} onClick={() => sendMessage(emoji, 'emoji')} style={{ fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', padding: '4px', borderRadius: 8, lineHeight: 1 }}>
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 사진 패널 */}
+      {showPhoto && (
+        <div style={{ background: 'white', borderTop: '1px solid #FDBCAA', padding: '12px 16px' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>사진 전송</div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '14px', background: '#FFF0EB', border: '2px dashed #FDBCAA', borderRadius: 14, cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 28 }}>📷</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', fontFamily: 'Nunito, sans-serif' }}>갤러리에서 선택</span>
+            </button>
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+          {uploading && (
+            <div style={{ textAlign: 'center', marginTop: 10, color: '#FDBCAA', fontSize: 13, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>사진 업로드 중...</div>
+          )}
+        </div>
+      )}
+
+      {/* 입력창 */}
+      <div style={{ background: 'white', borderTop: '1px solid #FDBCAA', padding: '10px 14px', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <button onClick={() => { setShowEmoji(!showEmoji); setShowPhoto(false); }} style={{ width: 36, height: 36, borderRadius: '50%', background: showEmoji ? '#F4845F' : '#FFF0EB', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>😊</button>
+        <button onClick={() => { setShowPhoto(!showPhoto); setShowEmoji(false); }} style={{ width: 36, height: 36, borderRadius: '50%', background: showPhoto ? '#F4845F' : '#FFF0EB', border: 'none', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📷</button>
+        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMessage(input)} placeholder="메시지 입력..."
+          style={{ flex: 1, border: '1.5px solid #FDBCAA', borderRadius: 24, padding: '10px 16px', fontSize: 14, outline: 'none', fontFamily: 'Nunito, sans-serif', color: '#3D1008', background: '#FFFAF8' }} />
+        <button onClick={() => sendMessage(input)} style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', color: 'white', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(244,132,95,0.35)', flexShrink: 0 }}>↑</button>
       </div>
     </div>
   );

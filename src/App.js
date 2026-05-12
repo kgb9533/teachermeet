@@ -11,26 +11,36 @@ import Likes from './Likes';
 import Today from './Today';
 import Home from './Home';
 import { THEMES } from './themes';
+import Logo from './Logo';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-      <div style={{ background: 'linear-gradient(135deg, #F4845F, #E8603A)', borderRadius: 24, padding: '40px 32px', textAlign: 'center', margin: 24, width: '100%', maxWidth: 320 }}>
-        <div style={{ fontSize: 36, fontWeight: 800, color: 'white', marginBottom: 8, fontFamily: 'Nunito, sans-serif' }}>매칭됐어요!</div>
-        <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 32, fontFamily: 'Nunito, sans-serif' }}>서로 좋아요를 눌렀어요 💕</div>
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, marginBottom: 32 }}>
-          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 24 }}>
+      <div style={{ background: 'linear-gradient(160deg, #F4845F, #E8603A)', borderRadius: 24, padding: '28px 24px', textAlign: 'center', width: '100%', maxWidth: 320 }}>
+        <div style={{ fontSize: 28, marginBottom: 8 }}>🎉✨🎊</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: 'white', marginBottom: 4, fontFamily: 'Nunito, sans-serif' }}>매칭됐어요!</div>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', marginBottom: 20, fontFamily: 'Nunito, sans-serif' }}>서로 좋아요를 눌렀어요 💕</div>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
             {userProfile?.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}
           </div>
-          <div style={{ fontSize: 24 }}>💕</div>
-          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36 }}>
+          <div style={{ fontSize: 20 }}>💕</div>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
             {matchedUser?.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}
           </div>
         </div>
-        <div style={{ color: 'white', fontSize: 16, fontWeight: 700, marginBottom: 24, fontFamily: 'Nunito, sans-serif' }}>{matchedUser?.name} 선생님과 매칭됐어요!</div>
-        <button onClick={onGoChat} style={{ width: '100%', padding: '14px', background: 'white', color: '#F4845F', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 800, cursor: 'pointer', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>메시지 보내기 💬</button>
-        <button onClick={onClose} style={{ width: '100%', padding: '12px', background: 'transparent', color: 'white', border: '1.5px solid rgba(255,255,255,0.5)', borderRadius: 14, fontSize: 14, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>계속 둘러보기</button>
+        <div style={{ color: 'white', fontSize: 14, fontWeight: 700, marginBottom: 16, fontFamily: 'Nunito, sans-serif' }}>{matchedUser?.name} 선생님과 매칭됐어요!</div>
+        <div style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 14, padding: '12px 14px', marginBottom: 16, textAlign: 'left' }}>
+          <div style={{ fontSize: 11, color: 'white', fontWeight: 800, marginBottom: 6, fontFamily: 'Nunito, sans-serif' }}>💡 첫 메시지 팁</div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.9)', lineHeight: 1.8, fontFamily: 'Nunito, sans-serif' }}>
+            "안녕하세요! 같은 지역 선생님이시군요 😊"<br/>
+            "MBTI가 저랑 잘 맞을 것 같아요!"<br/>
+            "어떤 과목 가르치세요?"
+          </div>
+        </div>
+        <button onClick={onGoChat} style={{ width: '100%', padding: '13px', background: 'white', color: '#F4845F', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: 'pointer', marginBottom: 8, fontFamily: 'Nunito, sans-serif' }}>💬 메시지 보내기</button>
+        <button onClick={onClose} style={{ width: '100%', padding: '11px', background: 'transparent', color: 'white', border: '1.5px solid rgba(255,255,255,0.4)', borderRadius: 12, fontSize: 13, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>계속 둘러보기</button>
       </div>
     </div>
   );
@@ -130,7 +140,10 @@ function App() {
   if (checkingAuth) return (
     <div className="phone" style={{ background: '#FFF8F5' }}>
       <div className="header">
-        <div className="logo">🍎 티처밋</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Logo size={28} />
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
+        </div>
       </div>
       <div className="auth-container" style={{ alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontSize: 40 }}>🍎</div>
@@ -155,7 +168,10 @@ function App() {
         {tab === 'swipe' && (
           <>
             <div className="header">
-              <div className="logo" style={{ cursor: 'pointer' }} onClick={() => setTab('swipe')}>🍎 티처밋</div>
+              <div onClick={() => setTab('home')} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <Logo size={28} />
+                <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
+              </div>
               <button onClick={handleLogout} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 14px', color: '#F4845F', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
             </div>
             <Swipe user={user} userProfile={userProfile} theme={theme}
@@ -172,11 +188,15 @@ function App() {
             onGoLikes={() => setTab('likes')}
             onGoToday={() => setTab('today')}
             onGoChat={() => setTab('chat')}
+            onLogout={handleLogout}
           />
         )}
         {tab !== 'swipe' && tab !== 'home' && (
           <div style={{ background: 'white', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #FDBCAA' }}>
-            <div onClick={() => setTab('home')} style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif', cursor: 'pointer' }}>🍎 티처밋</div>
+            <div onClick={() => setTab('home')} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <Logo size={28} />
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
+            </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif' }}>
               {tab === 'likes' && '좋아요 💜'}
               {tab === 'today' && '추천 ⭐'}
@@ -204,16 +224,20 @@ function App() {
         {[
           { id: 'likes', icon: '🧡', label: '좋아요' },
           { id: 'today', icon: '⭐', label: '추천' },
-          { id: 'home', icon: '🍎', label: '홈' },
-          { id: 'chat', icon: '💬', label: '매칭' },
-          { id: 'myprofile', icon: '👤', label: '프로필' },
+          { id: 'home', icon: null, label: '홈' },
+          { id: 'chat', icon: '💬', label: '대화' },
+          { id: 'myprofile', icon: '👤', label: '내 프로필' },
         ].map(item => (
           <button key={item.id} onClick={() => {
             setTab(item.id);
             if (item.id === 'chat') setChatBadge(0);
           }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 16px', position: 'relative' }}>
             <div style={{ position: 'relative' }}>
-              <span style={{ fontSize: item.id === 'swipe' ? 28 : 22, filter: item.id === 'swipe' ? 'drop-shadow(0 2px 4px rgba(244,132,95,0.4))' : 'none' }}>{item.icon}</span>
+              {item.id === 'home' ? (
+                <Logo size={34} />
+              ) : (
+                <span style={{ fontSize: 22 }}>{item.icon}</span>
+              )}
               {item.id === 'chat' && chatBadge > 0 && (
                 <div style={{ position: 'absolute', top: -4, right: -8, width: 16, height: 16, borderRadius: '50%', background: '#F4845F', border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: 'white' }}>{chatBadge}</div>
               )}
@@ -228,7 +252,10 @@ function App() {
   return (
     <div className="phone" style={{ background: 'white' }}>
       <div className="header">
-        <div className="logo">🍎 티처밋</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Logo size={28} />
+          <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
+        </div>
       </div>
       <div className="auth-container">
         <div className="auth-hero">
