@@ -119,7 +119,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
       }
     };
     fetchData();
-  }, [user.uid]);
+  }, [user.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLike = async () => {
     if (!todayProfile || liked) return;
