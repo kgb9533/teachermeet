@@ -12,6 +12,7 @@ import Today from './Today';
 import Home from './Home';
 import { THEMES } from './themes';
 import Logo from './Logo';
+import Footer from './Footer';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
@@ -329,6 +330,7 @@ function App() {
           </button>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
