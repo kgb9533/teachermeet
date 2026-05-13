@@ -13,6 +13,10 @@ import Home from './Home';
 import { THEMES } from './themes';
 import Logo from './Logo';
 import Footer from './Footer';
+import Terms from './Terms';
+import Privacy from './Privacy';
+import Refund from './Refund';
+import Pricing from './Pricing';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
@@ -64,6 +68,7 @@ function App() {
   const [resetSent, setResetSent] = useState(false);
   const [resetError, setResetError] = useState('');
   const [theme, setTheme] = useState('sunset');
+  const [policyPage, setPolicyPage] = useState(null);
 
   const t = THEMES[theme];
 
@@ -330,7 +335,74 @@ function App() {
           </button>
         </div>
       </div>
-      <Footer />
+      <Footer onNavigate={(page) => setPolicyPage(page)} />
+
+      {policyPage && (
+        <div
+          onClick={() => setPolicyPage(null)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#FFF8F5',
+              borderRadius: 20,
+              width: '100%',
+              maxWidth: 420,
+              maxHeight: '85vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+              position: 'relative',
+            }}
+          >
+            <button
+              onClick={() => setPolicyPage(null)}
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 14,
+                background: '#FFF0EB',
+                border: '1px solid #FDBCAA',
+                borderRadius: '50%',
+                width: 34,
+                height: 34,
+                cursor: 'pointer',
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#3D1008',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 99999,
+                fontFamily: 'Nunito, sans-serif',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+              }}
+            >
+              ✕
+            </button>
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {policyPage === 'terms' && <Terms onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'privacy' && <Privacy onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'refund' && <Refund onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'pricing' && <Pricing onBack={() => setPolicyPage(null)} />}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
