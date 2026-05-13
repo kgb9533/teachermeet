@@ -17,6 +17,7 @@ import Terms from './Terms';
 import Privacy from './Privacy';
 import Refund from './Refund';
 import Pricing from './Pricing';
+import { EDU_PACKAGES } from './eduPackages';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
@@ -335,6 +336,56 @@ function App() {
           </button>
         </div>
       </div>
+
+      {/* EDU 가격 안내 섹션 (PG 봇이 가격 정보를 인식하도록) */}
+      <div style={{ padding: '20px 24px', background: 'white', fontFamily: 'Nunito, sans-serif' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+          borderRadius: 14,
+          padding: 14,
+          textAlign: 'center',
+          color: 'white',
+          marginBottom: 12,
+        }}>
+          <div style={{ fontSize: 11, opacity: 0.95 }}>티처밋 에듀(EDU) 충전 비율</div>
+          <div style={{ fontSize: 18, fontWeight: 800, margin: '4px 0' }}>1,000원 = 100 EDU</div>
+          <div style={{ fontSize: 10, opacity: 0.9 }}>VAT 포함 · 결제 즉시 충전</div>
+        </div>
+
+        <table style={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          background: 'white',
+          fontSize: 12,
+          border: '1px solid #FDBCAA',
+          borderRadius: 10,
+          overflow: 'hidden',
+        }}>
+          <thead>
+            <tr style={{ background: '#FFF0EB' }}>
+              <th style={{ textAlign: 'left', padding: 8, fontSize: 11, color: '#C23B22', fontWeight: 700 }}>패키지</th>
+              <th style={{ textAlign: 'left', padding: 8, fontSize: 11, color: '#C23B22', fontWeight: 700 }}>EDU</th>
+              <th style={{ textAlign: 'left', padding: 8, fontSize: 11, color: '#C23B22', fontWeight: 700 }}>가격</th>
+            </tr>
+          </thead>
+          <tbody>
+            {EDU_PACKAGES.map((pkg) => (
+              <tr key={pkg.id} style={{ borderTop: '1px solid #FFF0EB' }}>
+                <td style={{ padding: '7px 8px' }}>{pkg.emoji} {pkg.name}</td>
+                <td style={{ padding: '7px 8px' }}>{pkg.edu.toLocaleString()}</td>
+                <td style={{ padding: '7px 8px', fontWeight: 700, color: '#E8603A' }}>
+                  {pkg.price.toLocaleString()}원
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div style={{ textAlign: 'center', marginTop: 10, fontSize: 11, color: '#9C5A4A' }}>
+          자세한 사용처는 푸터의 <strong>요금안내</strong>에서 확인
+        </div>
+      </div>
+
       <Footer onNavigate={(page) => setPolicyPage(page)} />
 
       {policyPage && (
