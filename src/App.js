@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db, rtdb } from './firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { ref, set, onDisconnect, serverTimestamp } from 'firebase/database';
 import Profile from './Profile';
 import Swipe from './Swipe';
@@ -18,6 +18,8 @@ import Privacy from './Privacy';
 import Refund from './Refund';
 import Pricing from './Pricing';
 import { EDU_PACKAGES } from './eduPackages';
+import SignupPhone from './SignupPhone';
+import LoginPhone from './LoginPhone';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
@@ -70,6 +72,7 @@ function App() {
   const [resetError, setResetError] = useState('');
   const [theme, setTheme] = useState('sunset');
   const [policyPage, setPolicyPage] = useState(null);
+  const [authMode, setAuthMode] = useState(null);
 
   const t = THEMES[theme];
 
@@ -113,7 +116,77 @@ function App() {
     });
     return () => unsub();
   }, []);
+// ===== 휴대폰 회원가입 처리 =====
+  // SignupPhone에서 본인인증+PIN설정 완료되면 호출됨
+  const handlePhoneSignup = async (data) => {
+    // data = { name, phone, birthDate, gender, ci, di, age, pin }
+    try {
+      // 1) 중복가입 체크: 같은 CI(본인인증 고유번호)로 가입한 사람이 있는지
+      const usersRef = collection(db, 'users');
+      const ciQuery = query(usersRef, where('verifiedCI', '==', data.ci));
+      const ciSnap = await getDocs(ciQuery);
+      if (!ciSnap.empty) {
+        throw new Error('이미 가입된 회원입니다. 로그인을 이용해주세요.');
+      }
 
+      // 2) 가짜 이메일 형식으로 Firebase 계정 생성
+      const cleanPhone = data.phone.replace(/[^0-9]/g, '');
+      const fakeEmail = `${cleanPhone}@teachermeet.kr`;
+      const userCred = await createUserWithEmailAndPassword(auth, fakeEmail, data.pin + 'teachermeet'); 
+      // ⚠️ Firebase 비밀번호는 6자리 이상 필수라서 PIN(4자리) + 'teachermeet' 추가
+
+      // 3) Firestore에 본인인증 정보 + PIN 저장
+      await setDoc(doc(db, 'users', userCred.user.uid), {
+        uid: userCred.user.uid,
+        phone: cleanPhone,
+        verifiedName: data.name,
+        verifiedBirth: data.birthDate,
+        verifiedGender: data.gender,
+        verifiedCI: data.ci,
+        verifiedDI: data.di,
+        age: data.age,
+        isVerified: true,
+        verifiedAt: new Date(),
+        pinHash: data.pin, // 일단 평문 저장, 다음 단계에서 해시화
+        createdAt: new Date(),
+      });
+
+      // 4) 자동 로그인 (Firebase Auth가 이미 처리함)
+      // → onAuthStateChanged가 감지해서 자동으로 화면 전환됨
+      setAuthMode(null);
+    } catch (e) {
+      console.error('회원가입 오류:', e);
+      throw new Error(e.message || '회원가입에 실패했습니다.');
+    }
+  };
+
+  // ===== 휴대폰 로그인 처리 =====
+  // LoginPhone에서 휴대폰번호+PIN 입력되면 호출됨
+  const handlePhoneLogin = async (cleanPhone, inputPin) => {
+    try {
+      // 가짜 이메일로 Firebase 로그인 시도
+      const fakeEmail = `${cleanPhone}@teachermeet.kr`;
+      await signInWithEmailAndPassword(auth, fakeEmail, inputPin + 'teachermeet');
+      // 성공하면 onAuthStateChanged가 감지해서 자동으로 화면 전환됨
+      setAuthMode(null);
+    } catch (e) {
+      if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password') {
+        throw new Error('휴대폰 번호 또는 PIN이 일치하지 않아요.');
+      } else if (e.code === 'auth/user-not-found') {
+        throw new Error('가입되지 않은 휴대폰 번호예요. 회원가입을 진행해주세요.');
+      } else {
+        throw new Error('로그인에 실패했어요. 다시 시도해주세요.');
+      }
+    }
+  };
+
+  // ===== PIN 재설정 처리 =====
+  const handleResetPin = async (verifiedCustomer) => {
+    // 본인인증으로 받은 CI로 사용자 찾기 → 새 PIN 설정 안내
+    // 일단은 안내 메시지만 표시 (실제 구현은 다음 단계)
+    alert('PIN 재설정 기능은 곧 추가될 예정입니다.\n' +
+          '현재는 회원가입 시 설정한 PIN을 사용해주세요.');
+  };
   const handleSubmit = async () => {
     setError('');
     setLoading(true);
@@ -259,6 +332,33 @@ function App() {
     </div>
   );
 
+  // 휴대폰 회원가입 화면
+  if (authMode === 'signup') {
+    return (
+      <SignupPhone
+        onComplete={async (data) => {
+          try {
+            await handlePhoneSignup(data);
+          } catch (e) {
+            alert(e.message);
+          }
+        }}
+        onBack={() => setAuthMode(null)}
+      />
+    );
+  }
+
+  // 휴대폰 로그인 화면
+  if (authMode === 'login') {
+    return (
+      <LoginPhone
+        onLogin={handlePhoneLogin}
+        onSignup={() => setAuthMode('signup')}
+        onResetPin={handleResetPin}
+      />
+    );
+  }
+
   return (
     <div className="phone" style={{ background: 'white' }}>
       <div className="header">
@@ -276,7 +376,37 @@ function App() {
             {isLogin ? '교육자 전용 소개팅 앱 티처밋' : '교육자만 가입할 수 있어요\n신분 인증 후 매칭을 시작해요'}
           </div>
         </div>
+{error && <div className="error-msg">{error}</div>}
 
+        {/* 휴대폰 로그인 버튼 (메인 인증 방식) */}
+        <button
+          onClick={() => setAuthMode('login')}
+          style={{
+            width: '100%',
+            padding: '16px',
+            background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+            color: 'white',
+            border: 'none',
+            borderRadius: 14,
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'Nunito, sans-serif',
+            marginBottom: 12,
+            boxShadow: '0 4px 12px rgba(232, 96, 58, 0.3)',
+          }}
+        >
+          📱 휴대폰으로 시작하기
+        </button>
+
+        <div style={{ textAlign: 'center', margin: '16px 0', color: '#FDBCAA', fontSize: 12, fontFamily: 'Nunito, sans-serif' }}>
+          또는 이메일로 로그인
+        </div>
+
+        <div className="input-group">
+          <label>이메일</label>
+          <input type="email" placeholder="example@school.ac.kr" value={email} onChange={e => setEmail(e.target.value)} />
+        </div>
         {error && <div className="error-msg">{error}</div>}
 
         <div className="input-group">
