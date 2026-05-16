@@ -10,12 +10,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import VerifiedBadge from './VerifiedBadge';
+import { spendEdu, subscribeEduBalance } from './eduWallet';
+import { EDU_COSTS } from './eduPackages';
 
 function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
   const [candidates, setCandidates] = useState([]); // 보여줄 사용자 목록
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [eduBalance, setEduBalance] = useState(0); // 실시간 EDU 잔액
 
   // 드래그 상태
   const [dragX, setDragX] = useState(0);
@@ -25,6 +28,14 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
 
   // 현재 카드
   const currentCard = candidates[currentIndex];
+// ===== EDU 잔액 실시간 구독 =====
+  useEffect(() => {
+    if (!user?.uid) return;
+    const unsub = subscribeEduBalance(user.uid, (balance) => {
+      setEduBalance(balance);
+    });
+    return () => unsub();
+  }, [user]);
 
   // ===== 사용자 목록 불러오기 =====
   useEffect(() => {
@@ -126,19 +137,23 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
   // ===== 슈퍼좋아요 (EDU 50 소모) =====
   const handleSuperLike = async () => {
     if (!currentCard || actionLoading) return;
-    
-    // EDU 잔액 확인
-    const eduBalance = userProfile?.eduBalance || 0;
-    if (eduBalance < 50) {
-      alert(`슈퍼좋아요는 50 EDU가 필요해요.\n현재 잔액: ${eduBalance} EDU\n\n충전 후 다시 시도해주세요!`);
+
+    const cost = EDU_COSTS.SUPER_LIKE; // 50
+
+    // EDU 잔액 확인 (실시간 구독값 사용)
+    if (eduBalance < cost) {
+      alert(`슈퍼좋아요는 ${cost} EDU가 필요해요.\n현재 잔액: ${eduBalance} EDU\n\n충전 후 다시 시도해주세요!`);
       return;
     }
 
-    if (!window.confirm('🌟 슈퍼좋아요를 보내시겠어요?\n(50 EDU 소모)')) return;
+    if (!window.confirm(`🌟 슈퍼좋아요를 보내시겠어요?\n(${cost} EDU 소모 · 잔액: ${eduBalance} EDU)`)) return;
 
     setActionLoading(true);
     try {
-      // 슈퍼좋아요 = likes에 isSuperLike: true 플래그 추가
+      // 1) EDU 차감 (트랜잭션 - 잔액 부족 시 자동 거부)
+      await spendEdu(user.uid, cost, 'SUPER_LIKE', { targetUid: currentCard.uid });
+
+      // 2) 슈퍼좋아요 등록
       const likeId = `${user.uid}_${currentCard.uid}`;
       await setDoc(doc(db, 'likes', likeId), {
         from: user.uid,
@@ -146,12 +161,17 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
         isSuperLike: true,
         createdAt: new Date(),
       });
-      // 💡 EDU 소모는 추후 eduWallet 연동 시 처리 (현재는 표시만)
-      // TODO: spendEdu(user.uid, 50, 'SUPER_LIKE', { targetUid: currentCard.uid });
+
+      // 3) 매칭 체크
       await checkMatch(currentCard.uid);
       nextCard();
     } catch (e) {
       console.error('슈퍼좋아요 오류:', e);
+      if (e.message === 'INSUFFICIENT_EDU') {
+        alert('EDU가 부족해요. 충전 후 다시 시도해주세요!');
+      } else {
+        alert('슈퍼좋아요 처리 중 오류가 발생했어요. 다시 시도해주세요.');
+      }
     }
     setActionLoading(false);
   };
@@ -315,9 +335,10 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
         </button>
       </div>
 
-      {/* 진행 상황 */}
+      {/* 진행 상황 + EDU 잔액 */}
       <div style={styles.progress}>
-        {currentIndex + 1} / {candidates.length}
+        <span>{currentIndex + 1} / {candidates.length}</span>
+        <span style={styles.eduDisplay}>💎 {eduBalance.toLocaleString()} EDU</span>
       </div>
     </div>
   );
@@ -479,10 +500,20 @@ const styles = {
     color: 'white',
   },
   progress: {
-    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     fontSize: 11,
     color: '#9C5A4A',
     paddingBottom: 4,
+    paddingTop: 4,
+    paddingLeft: 8,
+    paddingRight: 8,
+  },
+  eduDisplay: {
+    color: '#E8603A',
+    fontWeight: 700,
+    fontSize: 12,
   },
   center: {
     flex: 1,
