@@ -3,6 +3,8 @@ import { db } from './firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import Verify from './Verify';
 import Admin from './Admin';
+import VerifiedBadge from './VerifiedBadge';
+import { requestPhoneVerification } from './phoneAuth';
 
 const SUBJECTS = ['국어', '영어', '수학', '과학', '사회', '역사', '체육', '음악', '미술', '기술', '도덕', '초등 전과목', '기타'];
 const REGIONS = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
@@ -224,6 +226,67 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
         )}
 
         <div style={{ borderTop: '1px solid #FDBCAA', paddingTop: 24, marginTop: 8 }}>
+          {/* 휴대폰 본인인증 영역 */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>
+              본인인증
+            </div>
+            {userProfile.isVerified ? (
+              <div style={{ background: '#F0F9FF', border: '1.5px solid #1DA1F2', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <VerifiedBadge size={20} style={{ marginLeft: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1DA1F2', fontFamily: 'Nunito, sans-serif' }}>
+                    본인인증 완료
+                  </div>
+                  <div style={{ fontSize: 11, color: '#666', marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>
+                    {userProfile.verifiedName ? `${userProfile.verifiedName}님 인증 완료` : '휴대폰 본인인증 완료'}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={async () => {
+                  try {
+                    const customer = await requestPhoneVerification();
+                    await updateDoc(doc(db, 'users', user.uid), {
+                      isVerified: true,
+                      verifiedName: customer.name,
+                      verifiedBirth: customer.birthDate,
+                      verifiedGender: customer.gender,
+                      verifiedCI: customer.ci,
+                      verifiedDI: customer.di,
+                      phone: customer.phone,
+                      verifiedAt: new Date(),
+                    });
+                    onUpdate({ ...userProfile, isVerified: true, verifiedName: customer.name });
+                    alert('본인인증이 완료되었어요! ✓');
+                  } catch (e) {
+                    alert(e.message || '본인인증에 실패했어요.');
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  background: 'linear-gradient(135deg, #4FC3F7, #1DA1F2)',
+                  border: 'none',
+                  borderRadius: 14,
+                  color: 'white',
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'Nunito, sans-serif',
+                  boxShadow: '0 4px 12px rgba(29, 161, 242, 0.3)',
+                }}
+              >
+                📱 휴대폰으로 본인인증하기
+              </button>
+            )}
+            <div style={{ fontSize: 11, color: '#9C5A4A', marginTop: 8, lineHeight: 1.6, fontFamily: 'Nunito, sans-serif' }}>
+              본인인증을 받으면 프로필에 파란 인증 마크가 표시되어 더 신뢰감을 줄 수 있어요!
+            </div>
+          </div>
+
+          {/* 교원 인증 영역 (기존) */}
           <Verify user={user} userProfile={userProfile} onUpdate={onUpdate} />
         </div>
 

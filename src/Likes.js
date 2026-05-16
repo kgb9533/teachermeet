@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
+import VerifiedBadge from './VerifiedBadge';
 
 function Likes({ user, onMatch }) {
   const [likedMe, setLikedMe] = useState([]);
@@ -86,6 +87,7 @@ function Likes({ user, onMatch }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <div style={{ color: 'white', fontWeight: 800, fontSize: 15, fontFamily: 'Nunito, sans-serif' }}>{profile.name}, {profile.age}</div>
                       {profile.verifyStatus === 'approved' && <span style={{ fontSize: 13 }}>✅</span>}
+                      {profile.isVerified && <VerifiedBadge size={14} />}
                     </div>
                     <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>
                       {profile.region} · {profile.subject}

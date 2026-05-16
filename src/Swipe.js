@@ -1,98 +1,517 @@
-import React, { useState, useEffect } from 'react';
+// src/Swipe.js
+// 데이팅 앱 스와이프 화면
+// - 카드 보기 (사진/이름/나이/지역/과목/MBTI/자기소개)
+// - 좋아요/패스 버튼 + 드래그 스와이프
+// - 슈퍼좋아요 (EDU 50 소모)
+// - 매칭 처리
+// - 인증 뱃지 (교원 ✅ + 본인 ✓)
+
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
+import VerifiedBadge from './VerifiedBadge';
 
-function Likes({ user, onMatch }) {
-  const [likedMe, setLikedMe] = useState([]);
+function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
+  const [candidates, setCandidates] = useState([]); // 보여줄 사용자 목록
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
 
+  // 드래그 상태
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const dragStartX = useRef(0);
+  const cardRef = useRef(null);
+
+  // 현재 카드
+  const currentCard = candidates[currentIndex];
+
+  // ===== 사용자 목록 불러오기 =====
   useEffect(() => {
-    const fetchLikes = async () => {
-      const snap = await getDocs(collection(db, 'likes'));
-      const likes = snap.docs.map(d => d.data()).filter(l => l.to === user.uid);
-      const profiles = await Promise.all(
-        likes.map(async l => {
-          const profileSnap = await getDoc(doc(db, 'users', l.from));
-          return profileSnap.exists() ? { ...profileSnap.data(), likedAt: l.createdAt } : null;
-        })
-      );
-      setLikedMe(profiles.filter(Boolean));
-      setLoading(false);
+    const fetchCandidates = async () => {
+      try {
+        // 1) 모든 사용자 가져오기
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const allUsers = usersSnap.docs
+          .map(d => ({ uid: d.id, ...d.data() }))
+          .filter(u => u.uid !== user.uid) // 본인 제외
+          .filter(u => u.name && u.age); // 프로필 미완성 제외
+
+        // 2) 이미 좋아요/패스한 사람 가져오기
+        const likesSnap = await getDocs(collection(db, 'likes'));
+        const myActions = likesSnap.docs
+          .map(d => d.data())
+          .filter(l => l.from === user.uid)
+          .map(l => l.to);
+
+        const passesSnap = await getDocs(collection(db, 'passes'));
+        const myPasses = passesSnap.docs
+          .map(d => d.data())
+          .filter(p => p.from === user.uid)
+          .map(p => p.to);
+
+        // 3) 제외 처리
+        const filtered = allUsers.filter(u => 
+          !myActions.includes(u.uid) && !myPasses.includes(u.uid)
+        );
+
+        // 4) 셔플 (랜덤 정렬)
+        const shuffled = filtered.sort(() => Math.random() - 0.5);
+        
+        setCandidates(shuffled);
+        setLoading(false);
+      } catch (e) {
+        console.error('사용자 불러오기 오류:', e);
+        setLoading(false);
+      }
     };
-    fetchLikes();
+    fetchCandidates();
   }, [user]);
 
-  const handleLikeBack = async (profile) => {
-    try {
-      const likeId = `${user.uid}_${profile.uid}`;
-      const reverseId = `${profile.uid}_${user.uid}`;
-      await setDoc(doc(db, 'likes', likeId), { from: user.uid, to: profile.uid, createdAt: new Date() });
-      const reverseSnap = await getDocs(collection(db, 'likes'));
-      const reverse = reverseSnap.docs.find(d => d.id === reverseId);
-      if (reverse) {
-        const matchId = [user.uid, profile.uid].sort().join('_');
-        await setDoc(doc(db, 'matches', matchId), { users: [user.uid, profile.uid], createdAt: new Date() });
-        onMatch(profile);
-      }
-      setLikedMe(prev => prev.filter(p => p.uid !== profile.uid));
-    } catch (e) { console.error('좋아요 오류:', e); }
+  // ===== 매칭 처리 함수 =====
+  const checkMatch = async (targetUid) => {
+    // 상대방이 나를 이미 좋아요했는지 확인
+    const reverseId = `${targetUid}_${user.uid}`;
+    const reverseSnap = await getDoc(doc(db, 'likes', reverseId));
+    if (reverseSnap.exists()) {
+      // 매칭! matches 컬렉션에 저장
+      const matchId = [user.uid, targetUid].sort().join('_');
+      await setDoc(doc(db, 'matches', matchId), {
+        users: [user.uid, targetUid],
+        createdAt: new Date(),
+      });
+      // App.js에 매칭 알림
+      const matchedProfile = candidates[currentIndex];
+      onMatch(matchedProfile);
+    }
   };
 
-  const handlePass = (uid) => setLikedMe(prev => prev.filter(p => p.uid !== uid));
+  // ===== 좋아요 =====
+  const handleLike = async () => {
+    if (!currentCard || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const likeId = `${user.uid}_${currentCard.uid}`;
+      await setDoc(doc(db, 'likes', likeId), {
+        from: user.uid,
+        to: currentCard.uid,
+        createdAt: new Date(),
+      });
+      await checkMatch(currentCard.uid);
+      nextCard();
+    } catch (e) {
+      console.error('좋아요 오류:', e);
+    }
+    setActionLoading(false);
+  };
+
+  // ===== 패스 =====
+  const handlePass = async () => {
+    if (!currentCard || actionLoading) return;
+    setActionLoading(true);
+    try {
+      const passId = `${user.uid}_${currentCard.uid}`;
+      await setDoc(doc(db, 'passes', passId), {
+        from: user.uid,
+        to: currentCard.uid,
+        createdAt: new Date(),
+      });
+      nextCard();
+    } catch (e) {
+      console.error('패스 오류:', e);
+    }
+    setActionLoading(false);
+  };
+
+  // ===== 슈퍼좋아요 (EDU 50 소모) =====
+  const handleSuperLike = async () => {
+    if (!currentCard || actionLoading) return;
+    
+    // EDU 잔액 확인
+    const eduBalance = userProfile?.eduBalance || 0;
+    if (eduBalance < 50) {
+      alert(`슈퍼좋아요는 50 EDU가 필요해요.\n현재 잔액: ${eduBalance} EDU\n\n충전 후 다시 시도해주세요!`);
+      return;
+    }
+
+    if (!window.confirm('🌟 슈퍼좋아요를 보내시겠어요?\n(50 EDU 소모)')) return;
+
+    setActionLoading(true);
+    try {
+      // 슈퍼좋아요 = likes에 isSuperLike: true 플래그 추가
+      const likeId = `${user.uid}_${currentCard.uid}`;
+      await setDoc(doc(db, 'likes', likeId), {
+        from: user.uid,
+        to: currentCard.uid,
+        isSuperLike: true,
+        createdAt: new Date(),
+      });
+      // 💡 EDU 소모는 추후 eduWallet 연동 시 처리 (현재는 표시만)
+      // TODO: spendEdu(user.uid, 50, 'SUPER_LIKE', { targetUid: currentCard.uid });
+      await checkMatch(currentCard.uid);
+      nextCard();
+    } catch (e) {
+      console.error('슈퍼좋아요 오류:', e);
+    }
+    setActionLoading(false);
+  };
+
+  // ===== 다음 카드로 =====
+  const nextCard = () => {
+    setDragX(0);
+    setCurrentIndex(prev => prev + 1);
+  };
+
+  // ===== 드래그 핸들러 (마우스/터치) =====
+  const handleDragStart = (clientX) => {
+    setDragging(true);
+    dragStartX.current = clientX;
+  };
+
+  const handleDragMove = (clientX) => {
+    if (!dragging) return;
+    setDragX(clientX - dragStartX.current);
+  };
+
+  const handleDragEnd = () => {
+    if (!dragging) return;
+    setDragging(false);
+
+    // 드래그 거리가 100px 이상이면 액션 실행
+    if (dragX > 100) {
+      handleLike(); // 오른쪽 → 좋아요
+    } else if (dragX < -100) {
+      handlePass(); // 왼쪽 → 패스
+    } else {
+      setDragX(0); // 원위치
+    }
+  };
+
+  // ===== 로딩 화면 =====
+  if (loading) {
+    return (
+      <div style={styles.center}>
+        <div style={{ fontSize: 40 }}>💕</div>
+        <div style={styles.loadingText}>선생님들을 찾고 있어요...</div>
+      </div>
+    );
+  }
+
+  // ===== 더 이상 볼 사람이 없을 때 =====
+  if (currentIndex >= candidates.length) {
+    return (
+      <div style={styles.center}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+        <div style={styles.emptyTitle}>오늘은 여기까지!</div>
+        <div style={styles.emptyText}>
+          모든 선생님을 다 보셨어요.<br />
+          내일 새로운 선생님들을 만나보세요 ✨
+        </div>
+      </div>
+    );
+  }
+
+  // ===== 메인 스와이프 카드 =====
+  const rotation = dragX * 0.05; // 드래그할 때 살짝 기울임
+  const opacity = 1 - Math.min(Math.abs(dragX) / 200, 0.5); // 멀어질수록 살짝 투명
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '18px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>🧡 좋아요</div>
-        <div style={{ fontSize: 13, color: '#FDBCAA', marginTop: 2, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-          {likedMe.length > 0 ? `${likedMe.length}명이 나를 좋아했어요!` : '아직 없어요'}
+    <div style={styles.container}>
+      {/* 카드 영역 */}
+      <div style={styles.cardArea}>
+        <div
+          ref={cardRef}
+          style={{
+            ...styles.card,
+            transform: `translateX(${dragX}px) rotate(${rotation}deg)`,
+            opacity,
+            transition: dragging ? 'none' : 'all 0.3s ease',
+            cursor: dragging ? 'grabbing' : 'grab',
+          }}
+          onMouseDown={(e) => handleDragStart(e.clientX)}
+          onMouseMove={(e) => handleDragMove(e.clientX)}
+          onMouseUp={handleDragEnd}
+          onMouseLeave={handleDragEnd}
+          onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+          onTouchMove={(e) => handleDragMove(e.touches[0].clientX)}
+          onTouchEnd={handleDragEnd}
+        >
+          {/* 좋아요/패스 라벨 (드래그 시 표시) */}
+          {dragX > 30 && (
+            <div style={{ ...styles.swipeLabel, ...styles.likeLabel, opacity: Math.min(dragX / 100, 1) }}>
+              💕 LIKE
+            </div>
+          )}
+          {dragX < -30 && (
+            <div style={{ ...styles.swipeLabel, ...styles.passLabel, opacity: Math.min(-dragX / 100, 1) }}>
+              ✕ PASS
+            </div>
+          )}
+
+          {/* 프로필 사진 */}
+          <div style={styles.photo}>
+            {currentCard.photoUrl ? (
+              <img src={currentCard.photoUrl} alt="" style={styles.photoImg} draggable={false} />
+            ) : (
+              <div style={styles.photoPlaceholder}>
+                {currentCard.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}
+              </div>
+            )}
+            
+            {/* 그라디언트 + 정보 오버레이 */}
+            <div style={styles.overlay}>
+              <div style={styles.nameRow}>
+                <span style={styles.name}>{currentCard.name}, {currentCard.age}</span>
+                {currentCard.verifyStatus === 'approved' && <span style={{ fontSize: 16 }}>✅</span>}
+                {currentCard.isVerified && <VerifiedBadge size={16} />}
+              </div>
+              <div style={styles.subInfo}>
+                {currentCard.region && `${currentCard.region}`}
+                {currentCard.subject && ` · ${currentCard.subject}`}
+              </div>
+              {currentCard.mbti && (
+                <div style={styles.tagRow}>
+                  <span style={styles.tag}>{currentCard.mbti}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 자기소개 (사진 아래) */}
+          {currentCard.bio && (
+            <div style={styles.bio}>
+              <div style={styles.bioLabel}>자기소개</div>
+              <div style={styles.bioText}>{currentCard.bio}</div>
+            </div>
+          )}
         </div>
       </div>
 
-      {loading ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ color: '#FDBCAA', fontSize: 14, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>불러오는 중...</div>
-        </div>
-      ) : likedMe.length === 0 ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🧡</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#3D1008', marginBottom: 8, fontFamily: 'Nunito, sans-serif' }}>아직 없어요</div>
-          <div style={{ fontSize: 14, color: '#FDBCAA', textAlign: 'center', lineHeight: 1.7, fontFamily: 'Nunito, sans-serif' }}>스와이프를 계속하면<br />나를 좋아하는 사람이 생길 거예요!</div>
-        </div>
-      ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-            {likedMe.map(profile => (
-              <div key={profile.uid} style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 16px rgba(244,132,95,0.1)', border: '1px solid #FDBCAA' }}>
-                <div style={{ position: 'relative', aspectRatio: '3/4' }}>
-                  {profile.photoUrl ? (
-                    <img src={profile.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', background: '#FFF0EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>
-                      {profile.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}
-                    </div>
-                  )}
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(61,16,8,0.75))', padding: '20px 12px 12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ color: 'white', fontWeight: 800, fontSize: 15, fontFamily: 'Nunito, sans-serif' }}>{profile.name}, {profile.age}</div>
-                      {profile.verifyStatus === 'approved' && <span style={{ fontSize: 13 }}>✅</span>}
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>{profile.region} · {profile.subject}</div>
-                    {profile.mbti && <div style={{ marginTop: 4 }}><span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', padding: '2px 8px', borderRadius: 10, fontSize: 11, fontFamily: 'Nunito, sans-serif' }}>{profile.mbti}</span></div>}
-                  </div>
-                  <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(244,132,95,0.9)', borderRadius: 20, padding: '4px 10px', fontSize: 11, color: 'white', fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>🧡 좋아요</div>
-                </div>
-                <div style={{ padding: '10px 12px', display: 'flex', gap: 8 }}>
-                  <button onClick={() => handlePass(profile.uid)} style={{ flex: 1, padding: '10px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 12, fontSize: 18, cursor: 'pointer' }}>✕</button>
-                  <button onClick={() => handleLikeBack(profile)} style={{ flex: 2, padding: '10px', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap' }}>♥ 좋아요!</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* 액션 버튼들 */}
+      <div style={styles.actions}>
+        <button
+          onClick={handlePass}
+          disabled={actionLoading}
+          style={{ ...styles.actionBtn, ...styles.passBtn }}
+          title="패스"
+        >
+          ✕
+        </button>
+        <button
+          onClick={handleSuperLike}
+          disabled={actionLoading}
+          style={{ ...styles.actionBtn, ...styles.superBtn }}
+          title="슈퍼좋아요 (50 EDU)"
+        >
+          🌟
+        </button>
+        <button
+          onClick={handleLike}
+          disabled={actionLoading}
+          style={{ ...styles.actionBtn, ...styles.likeBtn }}
+          title="좋아요"
+        >
+          💕
+        </button>
+      </div>
+
+      {/* 진행 상황 */}
+      <div style={styles.progress}>
+        {currentIndex + 1} / {candidates.length}
+      </div>
     </div>
   );
 }
 
-export default Likes;
+const styles = {
+  container: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    background: '#FFF8F5',
+    padding: '12px 16px',
+    fontFamily: 'Nunito, sans-serif',
+    overflow: 'hidden',
+  },
+  cardArea: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  card: {
+    background: 'white',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 360,
+    overflow: 'hidden',
+    boxShadow: '0 8px 24px rgba(244,132,95,0.15)',
+    border: '1px solid #FDBCAA',
+    userSelect: 'none',
+    position: 'relative',
+  },
+  photo: {
+    position: 'relative',
+    aspectRatio: '3/4',
+    background: '#FFF0EB',
+  },
+  photoImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    pointerEvents: 'none',
+  },
+  photoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 80,
+  },
+  overlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    background: 'linear-gradient(transparent, rgba(61,16,8,0.85))',
+    padding: '30px 16px 14px',
+  },
+  nameRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    color: 'white',
+    marginBottom: 4,
+  },
+  name: {
+    fontWeight: 800,
+    fontSize: 22,
+  },
+  subInfo: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  tagRow: {
+    display: 'flex',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
+  tag: {
+    background: 'rgba(255,255,255,0.25)',
+    color: 'white',
+    padding: '4px 10px',
+    borderRadius: 12,
+    fontSize: 12,
+    fontWeight: 700,
+    backdropFilter: 'blur(8px)',
+  },
+  bio: {
+    padding: '14px 16px',
+    borderTop: '1px solid #FFF0EB',
+  },
+  bioLabel: {
+    fontSize: 11,
+    color: '#C23B22',
+    fontWeight: 700,
+    marginBottom: 4,
+  },
+  bioText: {
+    fontSize: 13,
+    color: '#3D1008',
+    lineHeight: 1.6,
+  },
+  swipeLabel: {
+    position: 'absolute',
+    top: 30,
+    padding: '8px 18px',
+    border: '4px solid',
+    borderRadius: 12,
+    fontSize: 22,
+    fontWeight: 900,
+    zIndex: 5,
+    transform: 'rotate(-15deg)',
+  },
+  likeLabel: {
+    right: 24,
+    color: '#22C55E',
+    borderColor: '#22C55E',
+    background: 'rgba(255,255,255,0.9)',
+  },
+  passLabel: {
+    left: 24,
+    color: '#EF4444',
+    borderColor: '#EF4444',
+    background: 'rgba(255,255,255,0.9)',
+    transform: 'rotate(15deg)',
+  },
+  actions: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 16,
+    padding: '16px 0 8px',
+  },
+  actionBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: '50%',
+    border: 'none',
+    fontSize: 26,
+    cursor: 'pointer',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    transition: 'transform 0.2s',
+    fontFamily: 'inherit',
+  },
+  passBtn: {
+    background: 'white',
+    color: '#EF4444',
+    border: '2px solid #EF4444',
+  },
+  superBtn: {
+    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
+    color: 'white',
+  },
+  likeBtn: {
+    background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+    color: 'white',
+  },
+  progress: {
+    textAlign: 'center',
+    fontSize: 11,
+    color: '#9C5A4A',
+    paddingBottom: 4,
+  },
+  center: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    background: '#FFF8F5',
+    fontFamily: 'Nunito, sans-serif',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: '#C23B22',
+    fontSize: 14,
+    fontWeight: 600,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: 800,
+    color: '#3D1008',
+    marginBottom: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#9C5A4A',
+    textAlign: 'center',
+    lineHeight: 1.7,
+  },
+};
+
+export default Swipe;

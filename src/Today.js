@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import VerifiedBadge from './VerifiedBadge';
 
 const MBTI_COMPATIBLE = {
   'INTJ': ['ENFP', 'ENTP'], 'INTP': ['ENFJ', 'ENTJ'],
@@ -65,6 +66,7 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: 'white', fontFamily: 'Nunito, sans-serif' }}>{profile.name}, {profile.age}</div>
             {profile.verifyStatus === 'approved' && <span style={{ fontSize: 14 }}>✅</span>}
+            {profile.isVerified && <VerifiedBadge size={15} />}
           </div>
           <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>📍 {profile.region} · {profile.level}</div>
         </div>

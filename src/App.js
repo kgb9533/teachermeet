@@ -147,7 +147,6 @@ function App() {
         age: data.age,
         isVerified: true,
         verifiedAt: new Date(),
-        pinHash: data.pin, // 일단 평문 저장, 다음 단계에서 해시화
         createdAt: new Date(),
       });
 
@@ -402,12 +401,6 @@ function App() {
         <div style={{ textAlign: 'center', margin: '16px 0', color: '#FDBCAA', fontSize: 12, fontFamily: 'Nunito, sans-serif' }}>
           또는 이메일로 로그인
         </div>
-
-        <div className="input-group">
-          <label>이메일</label>
-          <input type="email" placeholder="example@school.ac.kr" value={email} onChange={e => setEmail(e.target.value)} />
-        </div>
-        {error && <div className="error-msg">{error}</div>}
 
         <div className="input-group">
           <label>이메일</label>

@@ -4,6 +4,7 @@ import { collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, getDocs, u
 import { rtdb } from './firebase';
 import { ref, onValue } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import VerifiedBadge from './VerifiedBadge';
 
 const EMOJIS = {
   '😊': ['😊','😍','🥰','😄','😆','🤗','😎','🥺','😢','😂','🤣','😅','😇','🤩','😋','😜'],
@@ -83,6 +84,7 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
           <div style={{ fontWeight: 700, fontSize: 15, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>
             {otherUser?.name}
             {otherUser?.verifyStatus === 'approved' && <span style={{ marginLeft: 4, fontSize: 13 }}>✅</span>}
+            {otherUser?.isVerified && <VerifiedBadge size={13} />}
           </div>
           <div style={{ fontSize: 12, color: '#FDBCAA', marginTop: 1, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>{otherUser?.subject} · {otherUser?.region}</div>
         </div>
@@ -288,6 +290,7 @@ function Chat({ user }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ fontWeight: 700, fontSize: 15, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>{match.otherUser?.name}</div>
                   {match.otherUser?.verifyStatus === 'approved' && <span style={{ fontSize: 13 }}>✅</span>}
+                  {match.otherUser?.isVerified && <VerifiedBadge size={13} />}
                 </div>
                 <div style={{ fontSize: 13, color: '#FDBCAA', marginTop: 2, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>{match.otherUser?.subject} · {match.otherUser?.region}</div>
               </div>
