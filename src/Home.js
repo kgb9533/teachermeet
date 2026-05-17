@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import Settings from './Settings';
 import Edu from './Edu';
+import Insights from './Insights';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -230,6 +231,9 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
             ))}
           </div>
         </div>
+
+        {/* 나의 인사이트 (통계) */}
+        <Insights user={user} />
 
         {/* 최근 활동 */}
         {recentActivity.length > 0 && (

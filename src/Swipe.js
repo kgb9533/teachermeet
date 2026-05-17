@@ -13,6 +13,7 @@ import VerifiedBadge from './VerifiedBadge';
 import { spendEdu, subscribeEduBalance } from './eduWallet';
 import { EDU_COSTS } from './eduPackages';
 import { getBlockedUids, getBlockedByUids } from './reports';
+import { recordProfileView } from './stats';
 
 function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
   const [candidates, setCandidates] = useState([]); // 보여줄 사용자 목록
@@ -29,7 +30,15 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
 
   // 현재 카드
   const currentCard = candidates[currentIndex];
-// ===== EDU 잔액 실시간 구독 =====
+
+  // ===== 카드 볼 때 조회 기록 =====
+  useEffect(() => {
+    if (currentCard?.uid && user?.uid) {
+      recordProfileView(user.uid, currentCard.uid);
+    }
+  }, [currentCard, user]);
+
+  // ===== EDU 잔액 실시간 구독 =====
   useEffect(() => {
     if (!user?.uid) return;
     const unsub = subscribeEduBalance(user.uid, (balance) => {
