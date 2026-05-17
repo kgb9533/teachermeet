@@ -21,6 +21,7 @@ import { EDU_PACKAGES } from './eduPackages';
 import SignupPhone from './SignupPhone';
 import LoginPhone from './LoginPhone';
 import ResetPinPhone from './ResetPinPhone';
+import { playMatchSound } from './sounds';
 import './App.css';
 
 function MatchPopup({ matchedUser, userProfile, onClose, onGoChat }) {
@@ -302,7 +303,7 @@ function App() {
               <button onClick={handleLogout} style={{ background: '#FFF0EB', border: 'none', borderRadius: 20, padding: '6px 14px', color: '#F4845F', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
             </div>
             <Swipe user={user} userProfile={userProfile} theme={theme}
-              onMatch={(target) => { setMatchedUser(target); if (tab !== 'chat') setChatBadge(prev => prev + 1); }}
+              onMatch={(target) => { playMatchSound(); setMatchedUser(target); if (tab !== 'chat') setChatBadge(prev => prev + 1); }}
               onLogout={handleLogout}
             />
           </>
@@ -332,8 +333,8 @@ function App() {
             </div>
           </div>
         )}
-        {tab === 'likes' && <Likes user={user} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
-        {tab === 'today' && <Today user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
+        {tab === 'likes' && <Likes user={user} theme={theme} onMatch={(target) => { playMatchSound(); setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
+        {tab === 'today' && <Today user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { playMatchSound(); setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'chat' && <Chat user={user} theme={theme} />}
         {tab === 'myprofile' && (
           <MyProfile
