@@ -6,7 +6,7 @@ import Admin from './Admin';
 import VerifiedBadge from './VerifiedBadge';
 import { requestPhoneVerification } from './phoneAuth';
 import BlockList from './BlockList';
-import { enableNotifications, disableNotifications, getNotificationStatus } from './notifications';
+import { enableNotifications, disableNotifications } from './notifications';
 
 const SUBJECTS = ['국어', '영어', '수학', '과학', '사회', '역사', '체육', '음악', '미술', '기술', '도덕', '초등 전과목', '기타'];
 const REGIONS = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
