@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import VerifiedBadge from './VerifiedBadge';
+import { getBlockedUids, getBlockedByUids } from './reports';
 
 function Likes({ user, onMatch }) {
   const [likedMe, setLikedMe] = useState([]);
@@ -11,11 +12,20 @@ function Likes({ user, onMatch }) {
     const fetchLikes = async () => {
       const snap = await getDocs(collection(db, 'likes'));
       const likes = snap.docs.map(d => d.data()).filter(l => l.to === user.uid);
+
+      // 차단한/나를 차단한 사람 가져오기
+      const [iBlocked, blockedMe] = await Promise.all([
+        getBlockedUids(user.uid),
+        getBlockedByUids(user.uid),
+      ]);
+
       const profiles = await Promise.all(
-        likes.map(async l => {
-          const profileSnap = await getDoc(doc(db, 'users', l.from));
-          return profileSnap.exists() ? { ...profileSnap.data(), likedAt: l.createdAt } : null;
-        })
+        likes
+          .filter(l => !iBlocked.includes(l.from) && !blockedMe.includes(l.from))
+          .map(async l => {
+            const profileSnap = await getDoc(doc(db, 'users', l.from));
+            return profileSnap.exists() ? { ...profileSnap.data(), likedAt: l.createdAt } : null;
+          })
       );
       setLikedMe(profiles.filter(Boolean));
       setLoading(false);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import VerifiedBadge from './VerifiedBadge';
+import { getBlockedUids, getBlockedByUids } from './reports';
 
 const MBTI_COMPATIBLE = {
   'INTJ': ['ENFP', 'ENTP'], 'INTP': ['ENFJ', 'ENTJ'],
@@ -111,8 +112,22 @@ function Today({ user, userProfile, onMatch }) {
   useEffect(() => {
     const fetchToday = async () => {
       const snap = await getDocs(collection(db, 'users'));
-      const profiles = snap.docs.map(d => d.data()).filter(p => p.uid !== user.uid);
+      let profiles = snap.docs.map(d => d.data()).filter(p => p.uid !== user.uid);
       if (profiles.length === 0) { setLoading(false); return; }
+
+      // 차단한/나를 차단한 사람 가져오기
+      const [iBlocked, blockedMe] = await Promise.all([
+        getBlockedUids(user.uid),
+        getBlockedByUids(user.uid),
+      ]);
+
+      // 차단 관계인 사람 제외
+      profiles = profiles.filter(p =>
+        !iBlocked.includes(p.uid) && !blockedMe.includes(p.uid)
+      );
+
+      if (profiles.length === 0) { setLoading(false); return; }
+
       const likesSnap = await getDocs(collection(db, 'likes'));
       const seenUids = likesSnap.docs.filter(d => d.data().from === user.uid).map(d => d.data().to);
       const scored = profiles.map(profile => {

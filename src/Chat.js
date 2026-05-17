@@ -5,6 +5,8 @@ import { rtdb } from './firebase';
 import { ref, onValue } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import VerifiedBadge from './VerifiedBadge';
+import Report from './Report';
+import { blockUser } from './reports';
 
 const EMOJIS = {
   '😊': ['😊','😍','🥰','😄','😆','🤗','😎','🥺','😢','😂','🤣','😅','😇','🤩','😋','😜'],
@@ -21,6 +23,8 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
   const [emojiCategory, setEmojiCategory] = useState('😊');
   const [uploading, setUploading] = useState(false);
   const [viewImage, setViewImage] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showReport, setShowReport] = useState(false);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -36,6 +40,17 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
   }, [matchId, user.uid]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const handleBlock = async () => {
+    if (!window.confirm(`${otherUser?.name}님을 차단할까요?\n차단하면 다시는 매칭/메시지를 받을 수 없어요.`)) return;
+    try {
+      await blockUser(user.uid, otherUser?.uid);
+      alert('차단했어요. 더 이상 상대방과 연결되지 않아요.');
+      onBack();
+    } catch (e) {
+      alert('차단 처리 중 오류가 발생했어요.');
+    }
+  };
 
   const sendMessage = async (text, type = 'text') => {
     if (!text.trim() && type === 'text') return;
@@ -75,12 +90,12 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* 헤더 */}
-      <div style={{ background: 'white', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #FDBCAA' }}>
+      <div style={{ background: 'white', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #FDBCAA', position: 'relative' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#F4845F', fontSize: 22, cursor: 'pointer', padding: 0, fontWeight: 700 }}>←</button>
         <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#FFF0EB', border: '2px solid #FDBCAA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, overflow: 'hidden' }}>
           {otherUser?.photoUrl ? <img src={otherUser.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (otherUser?.gender === '남성' ? '👨‍🏫' : '👩‍🏫')}
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>
             {otherUser?.name}
             {otherUser?.verifyStatus === 'approved' && <span style={{ marginLeft: 4, fontSize: 13 }}>✅</span>}
@@ -88,7 +103,42 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
           </div>
           <div style={{ fontSize: 12, color: '#FDBCAA', marginTop: 1, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>{otherUser?.subject} · {otherUser?.region}</div>
         </div>
+        {/* ⋮ 메뉴 버튼 */}
+        <button onClick={() => setShowMenu(!showMenu)} style={{ background: showMenu ? '#FFF0EB' : 'none', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#9C5A4A' }}>
+          ⋮
+        </button>
+        {/* 드롭다운 메뉴 */}
+        {showMenu && (
+          <>
+            <div onClick={() => setShowMenu(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 998 }} />
+            <div style={{ position: 'absolute', top: 60, right: 14, background: 'white', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)', border: '1px solid #FDBCAA', zIndex: 999, overflow: 'hidden', minWidth: 160 }}>
+              <button
+                onClick={() => { setShowMenu(false); setShowReport(true); }}
+                style={{ width: '100%', padding: '12px 16px', background: 'white', border: 'none', borderBottom: '1px solid #FFF0EB', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#3D1008', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'left' }}
+              >
+                🚨 신고하기
+              </button>
+              <button
+                onClick={() => { setShowMenu(false); handleBlock(); }}
+                style={{ width: '100%', padding: '12px 16px', background: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#C23B22', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'left' }}
+              >
+                🚫 차단하기
+              </button>
+            </div>
+          </>
+        )}
       </div>
+
+      {/* 신고 모달 */}
+      {showReport && (
+        <Report
+          user={user}
+          targetUser={otherUser}
+          context={{ source: 'chat', matchId }}
+          onClose={() => setShowReport(false)}
+          onComplete={() => { setShowReport(false); onBack(); }}
+        />
+      )}
 
       {/* 메시지 영역 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', background: '#FFF8F5', display: 'flex', flexDirection: 'column', gap: 6 }}>

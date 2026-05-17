@@ -12,6 +12,7 @@ import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import VerifiedBadge from './VerifiedBadge';
 import { spendEdu, subscribeEduBalance } from './eduWallet';
 import { EDU_COSTS } from './eduPackages';
+import { getBlockedUids, getBlockedByUids } from './reports';
 
 function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
   const [candidates, setCandidates] = useState([]); // 보여줄 사용자 목록
@@ -61,9 +62,18 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
           .filter(p => p.from === user.uid)
           .map(p => p.to);
 
-        // 3) 제외 처리
-        const filtered = allUsers.filter(u => 
-          !myActions.includes(u.uid) && !myPasses.includes(u.uid)
+        // 2-1) 차단한 / 나를 차단한 사람 가져오기
+        const [iBlocked, blockedMe] = await Promise.all([
+          getBlockedUids(user.uid),
+          getBlockedByUids(user.uid),
+        ]);
+
+        // 3) 제외 처리 (좋아요/패스/차단/나를 차단)
+        const filtered = allUsers.filter(u =>
+          !myActions.includes(u.uid) &&
+          !myPasses.includes(u.uid) &&
+          !iBlocked.includes(u.uid) &&
+          !blockedMe.includes(u.uid)
         );
 
         // 4) 셔플 (랜덤 정렬)
