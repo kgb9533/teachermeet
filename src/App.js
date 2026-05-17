@@ -210,8 +210,6 @@ function App() {
   const handleResetPinComplete = async (data) => {
     // data = { name, phone, birthDate, gender, ci, di, age, pin, existingUid }
     try {
-      const cleanPhone = data.phone.replace(/[^0-9]/g, '');
-     
 
       // Firebase Auth 비밀번호 변경은 클라이언트에서 직접 불가능
       // 대신 새 계정을 만들 수도 없음 (중복가입 됨)
