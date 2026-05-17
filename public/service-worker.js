@@ -29,18 +29,28 @@ self.addEventListener('install', (event) => {
 // 활성화: 오래된 캐시 정리
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => {
-            console.log('오래된 캐시 삭제:', name);
-            return caches.delete(name);
-          })
-      );
-    })
+    Promise.all([
+      // 1) 오래된 캐시 정리
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => name !== CACHE_NAME)
+            .map((name) => {
+              console.log('오래된 캐시 삭제:', name);
+              return caches.delete(name);
+            })
+        );
+      }),
+      // 2) 모든 클라이언트 즉시 제어 (새 SW로 전환)
+      self.clients.claim(),
+      // 3) 열린 모든 탭에 "새로고침해!" 신호
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED' });
+        });
+      }),
+    ])
   );
-  self.clients.claim();
 });
 
 // 요청 처리

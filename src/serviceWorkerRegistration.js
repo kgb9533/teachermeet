@@ -28,6 +28,14 @@ export function register(config) {
       } else {
         // 프로덕션에서는 SW 등록
         registerValidSW(swUrl, config);
+
+        // 새 SW 활성화 시 자동 새로고침
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data?.type === 'SW_UPDATED') {
+            console.log('티처밋: 새 버전이 활성화됨. 새로고침합니다.');
+            window.location.reload();
+          }
+        });
       }
     });
   }
