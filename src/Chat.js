@@ -511,7 +511,6 @@ function Chat({ user, onGoSwipe }) {
     const msgDate = date.toDate ? date.toDate() : new Date(date);
     const diff = now - msgDate;
     const diffMin = Math.floor(diff / (1000 * 60));
-    const diffHour = Math.floor(diff / (1000 * 60 * 60));
     const diffDay = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     if (diffMin < 1) return '방금';
