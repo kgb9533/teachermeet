@@ -65,10 +65,13 @@ function Likes({ user, onMatch }) {
         </div>
       ) : likedMe.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🧡</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#3D1008', marginBottom: 8, fontFamily: 'Nunito, sans-serif' }}>아직 없어요</div>
-          <div style={{ fontSize: 14, color: '#FDBCAA', textAlign: 'center', lineHeight: 1.7, fontFamily: 'Nunito, sans-serif' }}>
-            스와이프를 계속하면<br />나를 좋아하는 사람이 생길 거예요!
+          <div style={{ fontSize: 64, marginBottom: 16 }}>💝</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: '#3D1008', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>아직 좋아요가 없어요</div>
+          <div style={{ fontSize: 14, color: '#9C5A4A', textAlign: 'center', lineHeight: 1.8, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
+            매력적인 프로필을 완성하고<br />스와이프를 계속해보세요 ✨
+          </div>
+          <div style={{ marginTop: 16, fontSize: 13, color: '#C23B22', fontWeight: 700, fontFamily: 'Nunito, sans-serif', background: '#FFF0EB', padding: '8px 16px', borderRadius: 20 }}>
+            당신을 좋아할 사람이 분명 있어요 💕
           </div>
         </div>
       ) : (

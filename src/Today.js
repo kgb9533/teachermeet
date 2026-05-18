@@ -150,15 +150,20 @@ function Today({ user, userProfile, onMatch }) {
 
   if (loading) return (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FFF8F5' }}>
-      <div style={{ color: '#FDBCAA', fontSize: 14, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>오늘의 추천을 찾는 중...</div>
+      <div style={{ color: '#9C5A4A', fontSize: 14, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>잘 맞는 선생님을 찾는 중... ✨</div>
     </div>
   );
 
   if (recommendations.length === 0) return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, background: '#FFF8F5' }}>
-      <div style={{ fontSize: 56, marginBottom: 16 }}>⭐</div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: '#3D1008', marginBottom: 8, fontFamily: 'Nunito, sans-serif' }}>추천할 선생님이 없어요</div>
-      <div style={{ fontSize: 14, color: '#FDBCAA', textAlign: 'center', lineHeight: 1.7, fontFamily: 'Nunito, sans-serif' }}>새로운 선생님이 가입하면<br />추천해드릴게요!</div>
+      <div style={{ fontSize: 64, marginBottom: 16 }}>🌱</div>
+      <div style={{ fontSize: 19, fontWeight: 800, color: '#3D1008', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>추천을 준비 중이에요</div>
+      <div style={{ fontSize: 14, color: '#9C5A4A', textAlign: 'center', lineHeight: 1.8, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
+        곧 잘 맞는 선생님을<br />찾아드릴게요!
+      </div>
+      <div style={{ marginTop: 16, fontSize: 13, color: '#C23B22', fontWeight: 700, fontFamily: 'Nunito, sans-serif', background: '#FFF0EB', padding: '8px 16px', borderRadius: 20 }}>
+        조금만 기다려주세요 ✨
+      </div>
     </div>
   );
 

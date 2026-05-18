@@ -261,7 +261,7 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
   );
 }
 
-function Chat({ user }) {
+function Chat({ user, onGoSwipe }) {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -316,9 +316,30 @@ function Chat({ user }) {
         </div>
       ) : matches.length === 0 ? (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>💬</div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: '#3D1008', marginBottom: 8, fontFamily: 'Nunito, sans-serif' }}>아직 매칭이 없어요</div>
-          <div style={{ fontSize: 14, color: '#FDBCAA', textAlign: 'center', lineHeight: 1.7, fontFamily: 'Nunito, sans-serif' }}>스와이프해서 마음에 드는<br />선생님을 찾아보세요!</div>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>💌</div>
+          <div style={{ fontSize: 19, fontWeight: 800, color: '#3D1008', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>아직 대화 상대가 없어요</div>
+          <div style={{ fontSize: 14, color: '#9C5A4A', textAlign: 'center', lineHeight: 1.8, fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 24 }}>
+            스와이프에서 좋아요를 누르고<br />서로 매칭되면 여기서 만나요!
+          </div>
+          {onGoSwipe && (
+            <button
+              onClick={onGoSwipe}
+              style={{
+                background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+                color: 'white',
+                border: 'none',
+                borderRadius: 14,
+                padding: '14px 28px',
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: 'pointer',
+                fontFamily: 'Nunito, sans-serif',
+                boxShadow: '0 4px 12px rgba(232, 96, 58, 0.3)',
+              }}
+            >
+              💝 스와이프 시작하기
+            </button>
+          )}
         </div>
       ) : (
         <div style={{ flex: 1, overflowY: 'auto', background: 'white' }}>
