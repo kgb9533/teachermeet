@@ -53,10 +53,47 @@ function Likes({ user, onMatch }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '6px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>
-          {likedMe.length > 0 ? `${likedMe.length}명이 나를 좋아했어요!` : '아직 없어요'}
-        </div>
+      <div style={{ background: 'white', padding: '14px 20px', borderBottom: '1px solid #FDBCAA' }}>
+        {likedMe.length > 0 ? (
+          <div style={{
+            background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+            borderRadius: 14,
+            padding: '14px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            boxShadow: '0 4px 12px rgba(232, 96, 58, 0.25)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+              <div style={{ fontSize: 28, flexShrink: 0 }}>💕</div>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'white', fontFamily: 'Nunito, sans-serif', lineHeight: 1.3 }}>
+                  {likedMe.length}명의 선생님이
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: 'white', fontFamily: 'Nunito, sans-serif', lineHeight: 1.3 }}>
+                  당신을 좋아해요!
+                </div>
+              </div>
+            </div>
+            <div style={{
+              background: 'white',
+              color: '#E8603A',
+              fontSize: 11,
+              fontWeight: 800,
+              padding: '4px 10px',
+              borderRadius: 12,
+              fontFamily: 'Nunito, sans-serif',
+              flexShrink: 0,
+            }}>
+              NEW
+            </div>
+          </div>
+        ) : (
+          <div style={{ fontSize: 13, color: '#9C5A4A', fontFamily: 'Nunito, sans-serif', fontWeight: 600, textAlign: 'center', padding: '4px 0' }}>
+            💝 새로운 좋아요를 기다리는 중...
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -120,18 +157,20 @@ function Likes({ user, onMatch }) {
                 </div>
                 <div style={{ padding: '10px 12px', display: 'flex', gap: 8 }}>
                   <button onClick={() => handlePass(profile.uid)} style={{
-                    flex: 1, padding: '10px', background: 'white',
+                    flex: 1, padding: '10px 6px', background: 'white',
                     border: '1.5px solid #FDBCAA', borderRadius: 12,
-                    fontSize: 18, cursor: 'pointer'
-                  }}>✕</button>
-                  <button onClick={() => handleLikeBack(profile)} style={{
-                    flex: 2, padding: '10px',
-                    background: 'linear-gradient(135deg, #F4845F, #E8603A)',
-                    border: 'none', borderRadius: 12,
-                    fontSize: 14, fontWeight: 700, color: 'white',
+                    fontSize: 12, fontWeight: 700, color: '#9C5A4A',
                     cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
                     whiteSpace: 'nowrap'
-                  }}>♥ 좋아요!</button>
+                  }}>🙏 괜찮아요</button>
+                  <button onClick={() => handleLikeBack(profile)} style={{
+                    flex: 1, padding: '10px 6px',
+                    background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+                    border: 'none', borderRadius: 12,
+                    fontSize: 12, fontWeight: 700, color: 'white',
+                    cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
+                    whiteSpace: 'nowrap'
+                  }}>♥ 좋아요</button>
                 </div>
               </div>
             ))}

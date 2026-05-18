@@ -93,10 +93,10 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
           </div>
         )}
         {liked ? (
-          <div style={{ width: '100%', padding: '12px', background: '#FFF0EB', borderRadius: 12, textAlign: 'center', fontSize: 14, fontWeight: 700, color: '#C23B22', fontFamily: 'Nunito, sans-serif' }}>🧡 좋아요를 보냈어요!</div>
+          <button onClick={handleLike} style={{ flex: 1, padding: '12px 6px', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap' }}>♥ 좋아요</button>
         ) : (
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setPassed(true)} style={{ flex: 1, padding: '12px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 12, fontSize: 18, cursor: 'pointer' }}>✕</button>
+            <button onClick={() => setPassed(true)} style={{ flex: 1, padding: '12px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 12, fontSize: 12, fontWeight: 700, color: '#9C5A4A', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap' }}>🙏 괜찮아요</button>
             <button onClick={handleLike} style={{ flex: 2, padding: '12px', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>♥ 좋아요!</button>
           </div>
         )}
@@ -141,11 +141,18 @@ function Today({ user, userProfile, onMatch }) {
     fetchToday();
   }, [user, userProfile]);
 
-  const getTimeUntilMidnight = () => {
-    const now = new Date(); const midnight = new Date();
+  const getCountdown = () => {
+    const now = new Date();
+    const midnight = new Date();
     midnight.setHours(24, 0, 0, 0);
     const diff = midnight - now;
-    return `${Math.floor(diff / (1000 * 60 * 60))}시간 ${Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))}분`;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    // 진행률: 하루 24시간 중 얼마나 지났는지 (0~100%)
+    const totalDayMs = 24 * 60 * 60 * 1000;
+    const elapsed = totalDayMs - diff;
+    const percent = Math.min(100, Math.max(0, (elapsed / totalDayMs) * 100));
+    return { hours, minutes, percent };
   };
 
   if (loading) return (
@@ -169,16 +176,73 @@ function Today({ user, userProfile, onMatch }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '6px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>나와 잘 맞는 선생님 {recommendations.length}명을 골라드려요</div>
+      <div style={{ background: 'white', padding: '14px 20px', borderBottom: '1px solid #FDBCAA' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+          borderRadius: 14,
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 12,
+          boxShadow: '0 4px 12px rgba(232, 96, 58, 0.25)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+            <div style={{ fontSize: 28, flexShrink: 0 }}>⭐</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'white', fontFamily: 'Nunito, sans-serif', lineHeight: 1.3 }}>
+                잘 맞는 선생님 {recommendations.length}명을
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: 'white', fontFamily: 'Nunito, sans-serif', lineHeight: 1.3 }}>
+                골라드렸어요!
+              </div>
+            </div>
+          </div>
+          <div style={{
+            background: 'white',
+            color: '#E8603A',
+            fontSize: 11,
+            fontWeight: 800,
+            padding: '4px 10px',
+            borderRadius: 12,
+            fontFamily: 'Nunito, sans-serif',
+            flexShrink: 0,
+          }}>
+            TODAY
+          </div>
+        </div>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
         {recommendations.map(({ profile, reasons }) => (
           <ProfileCard key={profile.uid} profile={profile} userProfile={userProfile} reasons={reasons} user={user} onMatch={onMatch} />
         ))}
-        <div style={{ textAlign: 'center', padding: '8px 0 16px', fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif' }}>
-          다음 추천까지 <span style={{ color: '#F4845F', fontWeight: 700 }}>{getTimeUntilMidnight()}</span>
-        </div>
+        {(() => {
+          const cd = getCountdown();
+          return (
+            <div style={{ padding: '12px 4px 20px' }}>
+              <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 16, padding: '14px 18px', fontFamily: 'Nunito, sans-serif' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 16 }}>⏰</span>
+                    <span style={{ fontSize: 12, color: '#9C5A4A', fontWeight: 700 }}>다음 추천 카운트다운</span>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: '#E8603A', fontFeatureSettings: "'tnum'" }}>
+                    {String(cd.hours).padStart(2, '0')}:{String(cd.minutes).padStart(2, '0')}
+                  </div>
+                </div>
+                <div style={{ background: '#FFF0EB', height: 8, borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{
+                    background: 'linear-gradient(90deg, #F4845F, #E8603A)',
+                    height: '100%',
+                    width: `${cd.percent}%`,
+                    borderRadius: 4,
+                    transition: 'width 0.5s ease',
+                  }} />
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
