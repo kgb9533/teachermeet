@@ -54,50 +54,245 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
   if (passed) return null;
 
   return (
-    <div style={{ background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 16px rgba(244,132,95,0.08)', border: '1px solid #FDBCAA', marginBottom: 16 }}>
-      <div style={{ position: 'relative', height: 220 }}>
+    <div style={{
+      background: 'white',
+      borderRadius: 20,
+      overflow: 'hidden',
+      boxShadow: '0 8px 24px rgba(232,96,58,0.15)',
+      marginBottom: 16,
+      position: 'relative',
+    }}>
+      {/* 사진 영역 */}
+      <div style={{ position: 'relative', height: 200, background: 'linear-gradient(135deg, #FFE5D9, #FFF0EB)' }}>
         {profile.photoUrl ? (
           <img src={profile.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <div style={{ width: '100%', height: '100%', background: '#FFF0EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64 }}>
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 60 }}>
             {profile.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}
           </div>
         )}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(61,16,8,0.8))', padding: '30px 16px 14px', color: 'white' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: 'white', fontFamily: 'Nunito, sans-serif' }}>{profile.name}, {profile.age}</div>
-            {profile.verifyStatus === 'approved' && <span style={{ fontSize: 14 }}>✅</span>}
-            {profile.isVerified && <VerifiedBadge size={15} />}
+        {/* 그라데이션 오버레이 + 이름 */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: 'linear-gradient(transparent, rgba(61,16,8,0.85))',
+          padding: '36px 16px 14px',
+          color: 'white',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 19, fontWeight: 800, fontFamily: 'Nunito, sans-serif' }}>{profile.name}</span>
+            <span style={{ fontSize: 15, fontWeight: 600, opacity: 0.85, fontFamily: 'Nunito, sans-serif' }}>{profile.age}</span>
+            {profile.verifyStatus === 'approved' && <span style={{ fontSize: 13, marginLeft: 2 }}>✅</span>}
+            {profile.isVerified && <VerifiedBadge size={14} />}
           </div>
-          <div style={{ fontSize: 12, opacity: 0.85, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>📍 {profile.region} · {profile.level}</div>
+          <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
+            📍 {profile.region} · {profile.level}
+          </div>
         </div>
       </div>
 
-      <div style={{ padding: '14px 16px' }}>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {reasons.slice(0, 2).map((reason, i) => (
-            <span key={i} style={{ background: '#FFF0EB', color: '#C23B22', padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>{reason}</span>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {profile.mbti && <span style={{ background: '#FFF0EB', color: '#C23B22', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>{profile.mbti}</span>}
-          {profile.marriageIntent && <span style={{ background: '#fff3f3', color: '#ff6b6b', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontFamily: 'Nunito, sans-serif' }}>{profile.marriageIntent}</span>}
-          {profile.hobbies && profile.hobbies.slice(0, 2).map(h => (
-            <span key={h} style={{ background: userProfile.hobbies?.includes(h) ? '#FFF0EB' : '#f5f5f5', color: userProfile.hobbies?.includes(h) ? '#C23B22' : '#555', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: userProfile.hobbies?.includes(h) ? 700 : 400, fontFamily: 'Nunito, sans-serif' }}>{h}{userProfile.hobbies?.includes(h) ? ' ✓' : ''}</span>
-          ))}
-        </div>
-        {profile.bio && (
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.6, background: '#FFFAF8', padding: '10px 12px', borderRadius: 10, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: expanded ? 'unset' : 2, WebkitBoxOrient: 'vertical', fontFamily: 'Nunito, sans-serif' }}>{profile.bio}</div>
-            {profile.bio.length > 60 && <button onClick={() => setExpanded(!expanded)} style={{ background: 'none', border: 'none', color: '#F4845F', fontSize: 12, cursor: 'pointer', fontWeight: 700, padding: '4px 0', fontFamily: 'Nunito, sans-serif' }}>{expanded ? '접기 ▲' : '더보기 ▼'}</button>}
+      {/* 정보 영역 */}
+      <div style={{ padding: '14px 16px 0' }}>
+        {/* 잘 맞는 이유 카드 */}
+        {reasons && reasons.length > 0 && (
+          <div style={{
+            background: 'linear-gradient(135deg, #FFF0EB, #FFE5D9)',
+            borderRadius: 14,
+            padding: '10px 12px',
+            marginBottom: 12,
+          }}>
+            <div style={{
+              fontSize: 10,
+              fontWeight: 800,
+              color: '#9C5A4A',
+              marginBottom: 6,
+              letterSpacing: '0.5px',
+              fontFamily: 'Nunito, sans-serif',
+            }}>
+              ✨ 잘 맞는 이유
+            </div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {reasons.slice(0, 3).map((reason, i) => (
+                <span key={i} style={{
+                  background: 'white',
+                  color: '#C23B22',
+                  padding: '3px 9px',
+                  borderRadius: 12,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  fontFamily: 'Nunito, sans-serif',
+                }}>
+                  {reason}
+                </span>
+              ))}
+            </div>
           </div>
         )}
+
+        {/* 추가 정보 태그들 */}
+        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
+          {profile.subject && (
+            <span style={{
+              background: '#FFFAF8',
+              color: '#9C5A4A',
+              padding: '3px 9px',
+              borderRadius: 10,
+              fontSize: 10,
+              fontWeight: 700,
+              border: '1px solid #FFD7C8',
+              fontFamily: 'Nunito, sans-serif',
+            }}>
+              📚 {profile.subject}
+            </span>
+          )}
+          {profile.mbti && (
+            <span style={{
+              background: '#FFFAF8',
+              color: '#9C5A4A',
+              padding: '3px 9px',
+              borderRadius: 10,
+              fontSize: 10,
+              fontWeight: 700,
+              border: '1px solid #FFD7C8',
+              fontFamily: 'Nunito, sans-serif',
+            }}>
+              {profile.mbti}
+            </span>
+          )}
+          {profile.hobbies && profile.hobbies.slice(0, 2).map(h => {
+            const isCommon = userProfile.hobbies?.includes(h);
+            return (
+              <span key={h} style={{
+                background: isCommon ? '#FFF0EB' : '#FFFAF8',
+                color: isCommon ? '#C23B22' : '#9C5A4A',
+                padding: '3px 9px',
+                borderRadius: 10,
+                fontSize: 10,
+                fontWeight: 700,
+                border: isCommon ? '1px solid #FDBCAA' : '1px solid #FFD7C8',
+                fontFamily: 'Nunito, sans-serif',
+              }}>
+                {h}{isCommon ? ' ✓' : ''}
+              </span>
+            );
+          })}
+          {profile.marriageIntent && (
+            <span style={{
+              background: '#FFFAF8',
+              color: '#9C5A4A',
+              padding: '3px 9px',
+              borderRadius: 10,
+              fontSize: 10,
+              fontWeight: 700,
+              border: '1px solid #FFD7C8',
+              fontFamily: 'Nunito, sans-serif',
+            }}>
+              💍 {profile.marriageIntent}
+            </span>
+          )}
+        </div>
+
+        {/* 자기소개 */}
+        {profile.bio && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={{
+              background: '#FFFAF8',
+              border: '1px solid #FFD7C8',
+              padding: '10px 12px',
+              borderRadius: 12,
+            }}>
+              <div style={{
+                fontSize: 9,
+                fontWeight: 800,
+                color: '#C23B22',
+                marginBottom: 4,
+                letterSpacing: '0.5px',
+                fontFamily: 'Nunito, sans-serif',
+              }}>
+                💬 자기소개
+              </div>
+              <div style={{
+                fontSize: 13,
+                color: '#3D1008',
+                lineHeight: 1.6,
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: expanded ? 'unset' : 2,
+                WebkitBoxOrient: 'vertical',
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 600,
+              }}>
+                {profile.bio}
+              </div>
+            </div>
+            {profile.bio.length > 60 && (
+              <button onClick={() => setExpanded(!expanded)} style={{
+                background: 'none',
+                border: 'none',
+                color: '#F4845F',
+                fontSize: 11,
+                cursor: 'pointer',
+                fontWeight: 700,
+                padding: '6px 0 0',
+                fontFamily: 'Nunito, sans-serif',
+              }}>
+                {expanded ? '접기 ▲' : '더보기 ▼'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 액션 버튼 */}
         {liked ? (
-          <button onClick={handleLike} style={{ flex: 1, padding: '12px 6px', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap' }}>♥ 좋아요</button>
+          <div style={{
+            width: '100%',
+            padding: '12px',
+            background: 'linear-gradient(135deg, #FFF0EB, #FFE5D9)',
+            borderRadius: 12,
+            textAlign: 'center',
+            fontSize: 13,
+            fontWeight: 800,
+            color: '#C23B22',
+            fontFamily: 'Nunito, sans-serif',
+            marginBottom: 12,
+          }}>
+            💕 좋아요를 보냈어요!
+          </div>
         ) : (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => setPassed(true)} style={{ flex: 1, padding: '12px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 12, fontSize: 12, fontWeight: 700, color: '#9C5A4A', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', whiteSpace: 'nowrap' }}>🙏 괜찮아요</button>
-            <button onClick={handleLike} style={{ flex: 2, padding: '12px', background: 'linear-gradient(135deg, #F4845F, #E8603A)', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, color: 'white', cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>♥ 좋아요!</button>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            <button onClick={() => setPassed(true)} style={{
+              flex: 1,
+              padding: '12px',
+              background: 'white',
+              border: '1.5px solid #FDBCAA',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 700,
+              color: '#9C5A4A',
+              cursor: 'pointer',
+              fontFamily: 'Nunito, sans-serif',
+              whiteSpace: 'nowrap',
+            }}>
+              🙏 괜찮아요
+            </button>
+            <button onClick={handleLike} style={{
+              flex: 2,
+              padding: '12px',
+              background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'white',
+              cursor: 'pointer',
+              fontFamily: 'Nunito, sans-serif',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 4px 12px rgba(244,132,95,0.35)',
+            }}>
+              ♥ 좋아요
+            </button>
           </div>
         )}
       </div>

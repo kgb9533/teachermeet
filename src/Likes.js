@@ -116,61 +116,101 @@ function Likes({ user, onMatch }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
             {likedMe.map(profile => (
               <div key={profile.uid} style={{
-                background: 'white', borderRadius: 20,
+                background: 'white',
+                borderRadius: 18,
                 overflow: 'hidden',
-                boxShadow: '0 4px 16px rgba(244,132,95,0.1)',
-                border: '1.5px solid #FDBCAA'
+                boxShadow: '0 6px 20px rgba(232,96,58,0.12)',
+                position: 'relative',
               }}>
-                <div style={{ position: 'relative', aspectRatio: '3/4' }}>
+                {/* 사진 영역 (정사각형) */}
+                <div style={{ position: 'relative', aspectRatio: '1/1', background: 'linear-gradient(135deg, #FFE5D9, #FFF0EB)' }}>
                   {profile.photoUrl ? (
                     <img src={profile.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ width: '100%', height: '100%', background: '#FFF0EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56 }}>
                       {profile.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}
                     </div>
                   )}
+                  {/* 우측 상단 좋아함 뱃지 */}
                   <div style={{
-                    position: 'absolute', bottom: 0, left: 0, right: 0,
-                    background: 'linear-gradient(transparent, rgba(61,16,8,0.75))',
-                    padding: '20px 12px 12px'
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+                    color: 'white',
+                    padding: '4px 8px',
+                    borderRadius: 12,
+                    fontSize: 9,
+                    fontWeight: 800,
+                    boxShadow: '0 2px 6px rgba(244,132,95,0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    fontFamily: 'Nunito, sans-serif',
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <div style={{ color: 'white', fontWeight: 800, fontSize: 15, fontFamily: 'Nunito, sans-serif' }}>{profile.name}, {profile.age}</div>
-                      {profile.verifyStatus === 'approved' && <span style={{ fontSize: 13 }}>✅</span>}
-                      {profile.isVerified && <VerifiedBadge size={14} />}
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>
-                      {profile.region} · {profile.subject}
-                    </div>
+                    <span>💕</span><span>좋아함</span>
+                  </div>
+                </div>
+
+                {/* 정보 영역 */}
+                <div style={{ padding: '12px 12px 10px' }}>
+                  {/* 이름·나이 + 인증 뱃지 */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 6, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>{profile.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#9C5A4A', fontFamily: 'Nunito, sans-serif' }}>{profile.age}</span>
+                    {profile.verifyStatus === 'approved' && <span style={{ fontSize: 12 }}>✅</span>}
+                    {profile.isVerified && <VerifiedBadge size={13} />}
+                  </div>
+
+                  {/* 정보 태그들 */}
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 10 }}>
+                    {profile.region && (
+                      <span style={{ background: '#FFF0EB', color: '#C23B22', padding: '3px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
+                        📍 {profile.region}
+                      </span>
+                    )}
+                    {profile.subject && (
+                      <span style={{ background: '#FFF0EB', color: '#C23B22', padding: '3px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
+                        📚 {profile.subject}
+                      </span>
+                    )}
                     {profile.mbti && (
-                      <div style={{ marginTop: 4 }}>
-                        <span style={{ background: 'rgba(255,255,255,0.2)', color: 'white', padding: '2px 8px', borderRadius: 10, fontSize: 11, fontFamily: 'Nunito, sans-serif' }}>{profile.mbti}</span>
-                      </div>
+                      <span style={{ background: '#FFF0EB', color: '#C23B22', padding: '3px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, fontFamily: 'Nunito, sans-serif' }}>
+                        {profile.mbti}
+                      </span>
                     )}
                   </div>
-                  <div style={{
-                    position: 'absolute', top: 10, right: 10,
-                    background: 'rgba(244,132,95,0.9)', borderRadius: 20,
-                    padding: '4px 10px', fontSize: 11, color: 'white', fontWeight: 700,
-                    fontFamily: 'Nunito, sans-serif'
-                  }}>🧡 좋아요</div>
-                </div>
-                <div style={{ padding: '10px 12px', display: 'flex', gap: 8 }}>
-                  <button onClick={() => handlePass(profile.uid)} style={{
-                    flex: 1, padding: '10px 6px', background: 'white',
-                    border: '1.5px solid #FDBCAA', borderRadius: 12,
-                    fontSize: 12, fontWeight: 700, color: '#9C5A4A',
-                    cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
-                    whiteSpace: 'nowrap'
-                  }}>🙏 괜찮아요</button>
-                  <button onClick={() => handleLikeBack(profile)} style={{
-                    flex: 1, padding: '10px 6px',
-                    background: 'linear-gradient(135deg, #F4845F, #E8603A)',
-                    border: 'none', borderRadius: 12,
-                    fontSize: 12, fontWeight: 700, color: 'white',
-                    cursor: 'pointer', fontFamily: 'Nunito, sans-serif',
-                    whiteSpace: 'nowrap'
-                  }}>♥ 좋아요</button>
+
+                  {/* 액션 버튼 */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => handlePass(profile.uid)} style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      background: 'white',
+                      border: '1.5px solid #FDBCAA',
+                      borderRadius: 10,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: '#9C5A4A',
+                      cursor: 'pointer',
+                      fontFamily: 'Nunito, sans-serif',
+                      whiteSpace: 'nowrap',
+                    }}>🙏</button>
+                    <button onClick={() => handleLikeBack(profile)} style={{
+                      flex: 2,
+                      padding: '8px 4px',
+                      background: 'linear-gradient(135deg, #F4845F, #E8603A)',
+                      border: 'none',
+                      borderRadius: 10,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontFamily: 'Nunito, sans-serif',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 6px rgba(244,132,95,0.3)',
+                    }}>♥ 좋아요</button>
+                  </div>
                 </div>
               </div>
             ))}
