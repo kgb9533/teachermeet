@@ -45,8 +45,27 @@ function SectionTitle({ title, isOpen, onToggle }) {
 
 function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const [name, setName] = useState(userProfile.name || '');
-  const [age, setAge] = useState(userProfile.age || '');
-  const [gender, setGender] = useState(userProfile.gender || '');
+  // 본인인증 정보에서 나이 계산 (생년월일 → 만 나이)
+  const calculateAgeFromBirth = (birthStr) => {
+    if (!birthStr) return null;
+    const year = parseInt(birthStr.substring(0, 4));
+    const month = parseInt(birthStr.substring(4, 6));
+    const day = parseInt(birthStr.substring(6, 8));
+    if (isNaN(year)) return null;
+    const today = new Date();
+    let calculatedAge = today.getFullYear() - year;
+    const m = today.getMonth() + 1 - month;
+    if (m < 0 || (m === 0 && today.getDate() < day)) calculatedAge--;
+    return calculatedAge;
+  };
+
+  // 본인인증 완료 시: verified 정보 우선. 미완료 시: 사용자 입력값 또는 기존 저장값
+  const verifiedAge = userProfile.isVerified ? calculateAgeFromBirth(userProfile.verifiedBirth) : null;
+  const initialAge = userProfile.isVerified && verifiedAge ? verifiedAge : (userProfile.age || '');
+  const initialGender = userProfile.isVerified && userProfile.verifiedGender ? userProfile.verifiedGender : (userProfile.gender || '');
+
+  const [age, setAge] = useState(initialAge);
+  const [gender, setGender] = useState(initialGender);
   const [height, setHeight] = useState(userProfile.height || '');
   const [bodyType, setBodyType] = useState(userProfile.bodyType || '');
   const [mbti, setMbti] = useState(userProfile.mbti || '');
@@ -74,7 +93,7 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const [showBlockList, setShowBlockList] = useState(false);
   const [policyPage, setPolicyPage] = useState(null);
   const [notifLoading, setNotifLoading] = useState(false);
-  const [openSections, setOpenSections] = useState({ '기본 정보': true, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false });
+  const [openSections, setOpenSections] = useState({ '기본 정보': false, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false });
 
   const toggleHobby = (h) => setHobbies(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
   const toggleSection = (title) => setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
@@ -167,13 +186,20 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', background: '#FFF8F5' }}>
-      <div style={{ background: 'white', padding: '6px 24px', borderBottom: '1px solid #FDBCAA' }}>
-        <div style={{ fontSize: 13, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>정보를 수정하고 저장해주세요</div>
+      <div style={{ padding: '14px 20px 0' }}>
+        <div style={{ background: 'linear-gradient(135deg, #F4845F 0%, #E8603A 100%)', borderRadius: 14, padding: '13px 16px', color: 'white', boxShadow: '0 4px 12px rgba(232, 96, 58, 0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ background: 'rgba(255,255,255,0.28)', padding: '3px 10px', borderRadius: 12, fontSize: 10, fontWeight: 800, letterSpacing: '0.5px', fontFamily: 'Nunito, sans-serif' }}>PROFILE</div>
+            <span style={{ fontSize: 14, fontWeight: 800, fontFamily: 'Nunito, sans-serif' }}>내 프로필</span>
+          </div>
+          <p style={{ margin: '6px 0 0', fontSize: 12, opacity: 0.92, fontWeight: 500, fontFamily: 'Nunito, sans-serif' }}>정보를 채울수록 운명의 만남이 가까워져요 💫</p>
+        </div>
       </div>
 
       <div style={{ padding: '24px 24px 40px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>프로필 사진 (최대 6장)</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 4, fontFamily: 'Nunito, sans-serif' }}>프로필 사진 (최대 6장)</div>
+          <div style={{ fontSize: 11, color: '#9C5A4A', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>첫 번째 사진이 대표사진으로 표시돼요 ✨</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
             {[0,1,2,3,4,5].map(idx => (
               <div key={idx} style={{ position: 'relative', aspectRatio: '1', borderRadius: 16, overflow: 'hidden', background: '#FFF0EB', border: '2px dashed #FDBCAA', cursor: 'pointer' }}
@@ -187,7 +213,7 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
                 ) : (
                   <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 4 }}>
                     <span style={{ fontSize: 24 }}>📷</span>
-                    {idx === 0 && <span style={{ fontSize: 10, color: '#FDBCAA' }}>필수</span>}
+                    {idx === 0 && <span style={{ fontSize: 10, color: '#F4845F', fontWeight: 700, marginTop: 2 }}>대표사진</span>}
                   </div>
                 )}
               </div>
@@ -201,13 +227,95 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
         {openSections['기본 정보'] && (
           <div>
             <div className="input-group"><label>닉네임</label><input type="text" value={name} onChange={e => setName(e.target.value)} /></div>
-            <div className="input-group"><label>나이</label><input type="number" value={age} onChange={e => setAge(e.target.value)} /></div>
+            {/* 나이 - 본인인증 여부에 따라 잠금/자유 */}
             <div className="input-group">
-              <label>성별</label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                나이
+                {userProfile.isVerified && <span style={{ fontSize: 12 }}>🔒</span>}
+              </label>
+              {userProfile.isVerified ? (
+                <div style={{
+                  background: '#F5EEEA',
+                  border: '1.5px solid #E8D5CC',
+                  borderRadius: 14,
+                  padding: '13px 18px',
+                  fontSize: 15,
+                  color: '#9C5A4A',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 700,
+                }}>
+                  <span>{age}{age && '세'}</span>
+                  <span style={{ fontSize: 13 }}>🔒</span>
+                </div>
+              ) : (
+                <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="예: 30" />
+              )}
+              <div style={{
+                marginTop: 6,
+                fontSize: 11,
+                color: userProfile.isVerified ? '#1DA1F2' : '#9C5A4A',
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 500,
+              }}>
+                {userProfile.isVerified ? '✓ 본인인증 정보예요' : '📱 본인인증하면 자동으로 적용돼요'}
+              </div>
+            </div>
+
+            {/* 성별 - 본인인증 여부에 따라 잠금/자유 */}
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                성별
+                {userProfile.isVerified && <span style={{ fontSize: 12 }}>🔒</span>}
+              </label>
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-                {['남성', '여성'].map(g => (
-                  <button key={g} onClick={() => setGender(g)} style={{ flex: 1, padding: '13px', borderRadius: 14, cursor: 'pointer', border: gender === g ? '2px solid #F4845F' : '1.5px solid #FDBCAA', background: gender === g ? '#FFF0EB' : 'white', color: gender === g ? '#C23B22' : '#aaa', fontWeight: gender === g ? 700 : 400, fontSize: 15, fontFamily: 'Nunito, sans-serif' }}>{g}</button>
-                ))}
+                {['남성', '여성'].map(g => {
+                  const isSelected = gender === g;
+                  const isLocked = userProfile.isVerified;
+                  return (
+                    <button
+                      key={g}
+                      onClick={() => !isLocked && setGender(g)}
+                      disabled={isLocked}
+                      style={{
+                        flex: 1,
+                        padding: '13px',
+                        borderRadius: 14,
+                        cursor: isLocked ? 'not-allowed' : 'pointer',
+                        border: isSelected
+                          ? (isLocked ? '2px solid #E8D5CC' : '2px solid #F4845F')
+                          : '1.5px solid #FDBCAA',
+                        background: isSelected
+                          ? (isLocked ? '#F5EEEA' : '#FFF0EB')
+                          : (isLocked ? '#FAFAFA' : 'white'),
+                        color: isSelected
+                          ? (isLocked ? '#9C5A4A' : '#C23B22')
+                          : (isLocked ? '#C5B5AC' : '#aaa'),
+                        fontWeight: isSelected ? 700 : 400,
+                        fontSize: 15,
+                        fontFamily: 'Nunito, sans-serif',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      {g}
+                      {isSelected && isLocked && <span style={{ fontSize: 11 }}>🔒</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{
+                marginTop: 6,
+                fontSize: 11,
+                color: userProfile.isVerified ? '#1DA1F2' : '#9C5A4A',
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 500,
+              }}>
+                {userProfile.isVerified ? '✓ 본인인증 정보예요' : '📱 본인인증하면 자동으로 적용돼요'}
               </div>
             </div>
             <div className="input-group"><label>키 (cm)</label><input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="예: 170" /></div>
