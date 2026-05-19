@@ -7,6 +7,13 @@ import VerifiedBadge from './VerifiedBadge';
 import { requestPhoneVerification } from './phoneAuth';
 import BlockList from './BlockList';
 import { enableNotifications, disableNotifications } from './notifications';
+import Terms from './Terms';
+import Privacy from './Privacy';
+import Refund from './Refund';
+import Youth from './Youth';
+import LocationTerms from './LocationTerms';
+import Community from './Community';
+import BusinessInfo from './BusinessInfo';
 
 const SUBJECTS = ['국어', '영어', '수학', '과학', '사회', '역사', '체육', '음악', '미술', '기술', '도덕', '초등 전과목', '기타'];
 const REGIONS = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
@@ -65,6 +72,7 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const [saved, setSaved] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showBlockList, setShowBlockList] = useState(false);
+  const [policyPage, setPolicyPage] = useState(null);
   const [notifLoading, setNotifLoading] = useState(false);
   const [openSections, setOpenSections] = useState({ '기본 정보': true, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false });
 
@@ -402,6 +410,123 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
             <BlockList user={user} onBack={() => setShowBlockList(false)} />
           </div>
         )}
+        {/* 정책 및 약관 섹션 */}
+        <div style={{ marginTop: 24, marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>
+            정책 및 약관
+          </div>
+          <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, overflow: 'hidden' }}>
+            {[
+              { emoji: '📋', label: '이용약관', page: 'terms' },
+              { emoji: '🔒', label: '개인정보처리방침', page: 'privacy' },
+              { emoji: '🛡️', label: '청소년보호정책', page: 'youth' },
+              { emoji: '📍', label: '위치기반서비스 이용약관', page: 'location' },
+              { emoji: '💰', label: '결제 및 환불정책', page: 'refund' },
+              { emoji: '📜', label: '커뮤니티 운영정책', page: 'community' },
+              { emoji: '🏢', label: '사업자 정보', page: 'business' },
+            ].map((item, idx, arr) => (
+              <button
+                key={item.page}
+                onClick={() => setPolicyPage(item.page)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  width: '100%',
+                  padding: '14px 16px',
+                  background: 'white',
+                  border: 'none',
+                  borderBottom: idx === arr.length - 1 ? 'none' : '0.5px solid #FDBCAA',
+                  cursor: 'pointer',
+                  fontFamily: 'Nunito, sans-serif',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ fontSize: 18 }}>{item.emoji}</span>
+                <span style={{ flex: 1, fontSize: 14, color: '#3D1008', fontWeight: 600 }}>{item.label}</span>
+                <span style={{ color: '#FDBCAA', fontSize: 18, fontWeight: 400 }}>›</span>
+              </button>
+            ))}
+          </div>
+          <div style={{ marginTop: 14, padding: '4px 4px', fontSize: 11, color: '#9C5A4A', lineHeight: 1.7, textAlign: 'center', fontFamily: 'Nunito, sans-serif' }}>
+            <div style={{ fontWeight: 700, color: '#C23B22', fontSize: 12 }}>티처밋 · 대표 김규보</div>
+            <div>사업자등록번호 111-25-97394</div>
+            <div>고객문의 dbdus1357@naver.com</div>
+            <div style={{ fontSize: 10, opacity: 0.7, marginTop: 6 }}>© 2026 TeacherMeet. All rights reserved.</div>
+          </div>
+        </div>
+
+        {/* 약관 모달 (오버레이) */}
+        {policyPage && (
+          <div
+            onClick={() => setPolicyPage(null)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: 20,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: '#FFF8F5',
+                borderRadius: 20,
+                width: '100%',
+                maxWidth: 420,
+                maxHeight: '85vh',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
+                position: 'relative',
+              }}
+            >
+              <button
+                onClick={() => setPolicyPage(null)}
+                style={{
+                  position: 'absolute',
+                  top: 14,
+                  right: 14,
+                  background: '#FFF0EB',
+                  border: '1px solid #FDBCAA',
+                  borderRadius: '50%',
+                  width: 34,
+                  height: 34,
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: '#3D1008',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 99999,
+                  fontFamily: 'Nunito, sans-serif',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                }}
+              >
+                ✕
+              </button>
+              <div style={{ overflowY: 'auto', flex: 1 }}>
+                {policyPage === 'terms' && <Terms onBack={() => setPolicyPage(null)} />}
+                {policyPage === 'privacy' && <Privacy onBack={() => setPolicyPage(null)} />}
+                {policyPage === 'refund' && <Refund onBack={() => setPolicyPage(null)} />}
+                {policyPage === 'youth' && <Youth onBack={() => setPolicyPage(null)} />}
+                {policyPage === 'location' && <LocationTerms onBack={() => setPolicyPage(null)} />}
+                {policyPage === 'community' && <Community onBack={() => setPolicyPage(null)} />}
+                {policyPage === 'business' && <BusinessInfo onBack={() => setPolicyPage(null)} />}
+              </div>
+            </div>
+          </div>
+        )}
+
         <button onClick={() => setShowBlockList(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#9C5A4A', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>🚫 차단한 사람 관리</button>
         {user.email === 'dbdus1357@naver.com' && (
           <button onClick={() => setShowAdmin(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#F4845F', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>🔧 관리자 페이지</button>

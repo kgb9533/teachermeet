@@ -16,6 +16,10 @@ import Footer from './Footer';
 import Terms from './Terms';
 import Privacy from './Privacy';
 import Refund from './Refund';
+import Youth from './Youth';
+import LocationTerms from './LocationTerms';
+import Community from './Community';
+import BusinessInfo from './BusinessInfo';
 import Pricing from './Pricing';
 import { EDU_PACKAGES } from './eduPackages';
 import SignupPhone from './SignupPhone';
@@ -629,6 +633,10 @@ function App() {
               {policyPage === 'terms' && <Terms onBack={() => setPolicyPage(null)} />}
               {policyPage === 'privacy' && <Privacy onBack={() => setPolicyPage(null)} />}
               {policyPage === 'refund' && <Refund onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'youth' && <Youth onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'location' && <LocationTerms onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'community' && <Community onBack={() => setPolicyPage(null)} />}
+              {policyPage === 'business' && <BusinessInfo onBack={() => setPolicyPage(null)} />}
               {policyPage === 'pricing' && <Pricing onBack={() => setPolicyPage(null)} />}
             </div>
           </div>
