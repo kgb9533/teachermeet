@@ -28,11 +28,7 @@ function Settings({ user, onClose, onLogout }) {
     setLoading(false);
   };
 
-  const Toggle = ({ value, onChange }) => (
-    <div onClick={() => onChange(!value)} style={{ width: 40, height: 22, background: value ? '#F4845F' : '#ddd', borderRadius: 11, position: 'relative', cursor: 'pointer', transition: 'background 0.2s', flexShrink: 0 }}>
-      <div style={{ width: 18, height: 18, background: 'white', borderRadius: '50%', position: 'absolute', top: 2, left: value ? 20 : 2, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }} />
-    </div>
-  );
+  
 
   const Section = ({ title, children }) => (
     <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 16, overflow: 'hidden' }}>
