@@ -345,7 +345,7 @@ function App() {
             </div>
           </div>
         )}
-        {tab === 'likes' && <Likes user={user} theme={theme} onMatch={(target) => { playMatchSound(); setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
+        {tab === 'likes' && <Likes user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { playMatchSound(); setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'today' && <Today user={user} userProfile={userProfile} theme={theme} onMatch={(target) => { playMatchSound(); setMatchedUser(target); setChatBadge(prev => prev + 1); }} />}
         {tab === 'chat' && <Chat user={user} theme={theme} onGoSwipe={() => setTab('swipe')} />}
         {tab === 'myprofile' && (

@@ -80,4 +80,71 @@ export const displayShort = (val, maxItems = 3) => {
   if (arr.length === 0) return '';
   if (arr.length <= maxItems) return arr.join(', ');
   return arr.slice(0, maxItems).join(', ') + ` 외 ${arr.length - maxItems}`;
-};
+}
+/**
+ * 두 좌표 사이의 거리 계산 (km)
+ * Haversine 공식 사용
+ */
+export function getDistance(lat1, lng1, lat2, lng2) {
+  if (!lat1 || !lng1 || !lat2 || !lng2) return null;
+  const R = 6371; // 지구 반지름 (km)
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * 거리(km)를 카테고리 라벨로 변환
+ * @returns { label, emoji, bgColor, textColor } 또는 null (위치 없으면)
+ */
+export function getDistanceLabel(km) {
+  if (km === null || km === undefined) return null;
+  if (km < 10) {
+    return {
+      label: '가까워요',
+      emoji: '🏃',
+      bgColor: '#DCFCE7',
+      textColor: '#166534',
+    };
+  }
+  if (km < 30) {
+    return {
+      label: '차로 30분',
+      emoji: '🚗',
+      bgColor: '#FEF3C7',
+      textColor: '#92400E',
+    };
+  }
+  if (km < 100) {
+    return {
+      label: '같은 권역',
+      emoji: '🚄',
+      bgColor: '#FFF0EB',
+      textColor: '#C23B22',
+    };
+  }
+  return {
+    label: '멀어요',
+    emoji: '✈️',
+    bgColor: '#FEE2E2',
+    textColor: '#991B1B',
+  };
+}
+
+/**
+ * 두 사용자 프로필 사이의 거리 뱃지 정보를 한 번에 반환
+ * 둘 중 하나라도 위치 정보 없으면 null
+ */
+export function getDistanceBadge(myProfile, theirProfile) {
+  if (!myProfile?.lat || !myProfile?.lng) return null;
+  if (!theirProfile?.lat || !theirProfile?.lng) return null;
+  const km = getDistance(myProfile.lat, myProfile.lng, theirProfile.lat, theirProfile.lng);
+  return getDistanceLabel(km);
+}

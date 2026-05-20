@@ -4,7 +4,7 @@ import Settings from './Settings';
 import Edu from './Edu';
 import Insights from './Insights';
 import { db } from './firebase';
-import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 
 const QUOTES = [
   { text: "사랑은 서로 마주 보는 것이 아니라, 함께 같은 방향을 바라보는 것이다.", author: "생텍쥐페리" },
@@ -26,8 +26,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
   const [stats, setStats] = useState({ total: 0, online: 0, weeklyMatch: 0 });
   const [myStats, setMyStats] = useState({ likedMe: 0, matched: 0, iLiked: 0, todayRec: 0 });
   const [recentActivity, setRecentActivity] = useState([]);
-  const [todayProfile, setTodayProfile] = useState(null);
-  const [liked, setLiked] = useState(false);
+  
 
   useEffect(() => {
     const fetchEdu = async () => {
@@ -113,20 +112,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
 
         setRecentActivity(activities);
 
-        // 오늘의 추천 선생님 1명
-        const profiles = usersSnap.docs
-          .map(d => d.data())
-          .filter(p => p.uid !== user.uid);
-
-        const seenUids = likesSnap.docs
-          .filter(d => d.data().from === user.uid)
-          .map(d => d.data().to);
-
-        const unseen = profiles.filter(p => !seenUids.includes(p.uid));
-        if (unseen.length > 0) {
-          const sameRegion = unseen.filter(p => p.region === userProfile.region);
-          setTodayProfile(sameRegion.length > 0 ? sameRegion[0] : unseen[0]);
-        }
+        
 
       } catch (e) {
         console.error('홈 데이터 오류:', e);
@@ -135,15 +121,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
     fetchData();
   }, [user.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleLike = async () => {
-    if (!todayProfile || liked) return;
-    try {
-      await setDoc(doc(db, 'likes', `${user.uid}_${todayProfile.uid}`), {
-        from: user.uid, to: todayProfile.uid, createdAt: new Date()
-      });
-      setLiked(true);
-    } catch (e) { console.error('좋아요 오류:', e); }
-  };
+  
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#FFF8F5', overflowY: 'auto' }}>
@@ -260,37 +238,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
           </div>
         )}
 
-        {/* 오늘의 추천 선생님 */}
-        {todayProfile && (
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: '#3D1008', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>오늘의 추천 선생님 ⭐</div>
-            <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 16, padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#FFF0EB', border: '2px solid #FDBCAA', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0, overflow: 'hidden' }}>
-                {todayProfile.photoUrl
-                  ? <img src={todayProfile.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : (todayProfile.gender === '남성' ? '👨‍🏫' : '👩‍🏫')}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>
-                  {todayProfile.name}, {todayProfile.age}
-                  {todayProfile.verifyStatus === 'approved' && ' ✅'}
-                </div>
-                <div style={{ fontSize: 11, color: '#FDBCAA', fontWeight: 600, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>
-                  {todayProfile.region} · {todayProfile.level} · {todayProfile.subject}
-                </div>
-                <div style={{ display: 'flex', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
-                  {todayProfile.mbti && <span style={{ background: '#FFF0EB', color: '#C23B22', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, fontFamily: 'Nunito, sans-serif' }}>{todayProfile.mbti}</span>}
-                  {todayProfile.hobbies && todayProfile.hobbies.slice(0, 2).map(h => (
-                    <span key={h} style={{ background: '#FFF0EB', color: '#C23B22', fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, fontFamily: 'Nunito, sans-serif' }}>{h}</span>
-                  ))}
-                </div>
-              </div>
-              <button onClick={handleLike} style={{ background: liked ? '#FFF0EB' : 'linear-gradient(135deg, #F4845F, #E8603A)', color: liked ? '#C23B22' : 'white', border: 'none', borderRadius: 12, padding: '10px 14px', fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>
-                {liked ? '✓' : '♥'}
-              </button>
-            </div>
-          </div>
-        )}
+        
 
         <div style={{ height: 20 }} />
       </div>

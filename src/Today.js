@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import { getBlockedUids, getBlockedByUids } from './reports';
-import { toArray, displayShort, commonItems } from './utils';
+import { toArray, displayShort, commonItems, getDistanceBadge } from './utils';
 
 const MBTI_COMPATIBLE = {
   'INTJ': ['ENFP', 'ENTP'], 'INTP': ['ENFJ', 'ENTJ'],
@@ -156,6 +156,29 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
             {!toArray(profile.level).length || !toArray(profile.region).length ? '' : ' · '}
             {displayShort(profile.level, 2)}
           </div>
+          {(() => {
+            const badge = getDistanceBadge(userProfile, profile);
+            if (!badge) return null;
+            return (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                marginTop: 6,
+                padding: '3px 10px',
+                borderRadius: 12,
+                background: badge.bgColor,
+                color: badge.textColor,
+                fontSize: 10,
+                fontWeight: 700,
+                fontFamily: 'Nunito, sans-serif',
+                width: 'fit-content',
+              }}>
+                <span>{badge.emoji}</span>
+                <span>{badge.label}</span>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

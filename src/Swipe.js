@@ -13,7 +13,7 @@ import { spendEdu, subscribeEduBalance } from './eduWallet';
 import { EDU_COSTS } from './eduPackages';
 import { getBlockedUids, getBlockedByUids } from './reports';
 import { recordProfileView } from './stats';
-import { displayShort } from './utils';
+import { displayShort, getDistanceBadge } from './utils';
 
 function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
   const [candidates, setCandidates] = useState([]); // 보여줄 사용자 목록
@@ -308,6 +308,39 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
                 {currentCard.subject && currentCard.region && ' · '}
                 {displayShort(currentCard.subject, 2)}
               </div>
+              {(() => {
+                console.log('🔍 거리 뱃지 디버그:', {
+                  userProfile_exists: !!userProfile,
+                  userProfile_keys: userProfile ? Object.keys(userProfile) : 'undefined',
+                  myLat: userProfile?.lat,
+                  myLng: userProfile?.lng,
+                  currentCard_exists: !!currentCard,
+                  currentCard_keys: currentCard ? Object.keys(currentCard) : 'undefined',
+                  theirLat: currentCard?.lat,
+                  theirLng: currentCard?.lng,
+                });
+                const badge = getDistanceBadge(userProfile, currentCard);
+                if (!badge) return null;
+                return (
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    marginTop: 6,
+                    padding: '3px 10px',
+                    borderRadius: 12,
+                    background: badge.bgColor,
+                    color: badge.textColor,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    fontFamily: 'Nunito, sans-serif',
+                    width: 'fit-content',
+                  }}>
+                    <span>{badge.emoji}</span>
+                    <span>{badge.label}</span>
+                  </div>
+                );
+              })()}
               {currentCard.mbti && (
                 <div style={styles.tagRow}>
                   <span style={styles.tag}>{currentCard.mbti}</span>

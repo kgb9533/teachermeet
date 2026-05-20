@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
 import { auth, db } from './firebase';
 import { sendPasswordResetEmail, deleteUser } from 'firebase/auth';
-import { doc, deleteDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import { doc, deleteDoc } from 'firebase/firestore';
 
-function Settings({ user, onClose, onLogout, onGoEdu }) {
-  const [notiLike, setNotiLike] = useState(true);
-  const [notiChat, setNotiChat] = useState(true);
-  const [notiMatch, setNotiMatch] = useState(false);
-  const [blockedList, setBlockedList] = useState([]);
-  const [showBlocked, setShowBlocked] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
-  const [showPrivacy, setShowPrivacy] = useState(false);
+function Settings({ user, onClose, onLogout }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,15 +16,7 @@ function Settings({ user, onClose, onLogout, onGoEdu }) {
     } catch (e) { alert('오류가 발생했어요. 다시 시도해주세요.'); }
   };
 
-  const handleShowBlocked = async () => {
-    const snap = await getDocs(query(collection(db, 'blocks'), where('from', '==', user.uid)));
-    const list = await Promise.all(snap.docs.map(async d => {
-      const userSnap = await getDocs(query(collection(db, 'users'), where('uid', '==', d.data().to)));
-      return userSnap.docs[0]?.data() || null;
-    }));
-    setBlockedList(list.filter(Boolean));
-    setShowBlocked(true);
-  };
+  
 
   const handleDeleteAccount = async () => {
     setLoading(true);
@@ -81,12 +66,7 @@ function Settings({ user, onClose, onLogout, onGoEdu }) {
 
         <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-          {/* 알림 설정 */}
-          <Section title="🔔 알림 설정">
-            <Item icon="🧡" label="좋아요 알림" sub="누군가 나를 좋아요 했을 때" right={<Toggle value={notiLike} onChange={setNotiLike} />} />
-            <Item icon="💬" label="채팅 알림" sub="새 메시지가 왔을 때" right={<Toggle value={notiChat} onChange={setNotiChat} />} />
-            <Item icon="💕" label="매칭 알림" sub="새 매칭이 됐을 때" right={<Toggle value={notiMatch} onChange={setNotiMatch} />} />
-          </Section>
+          
 
           {/* 계정 설정 */}
           <Section title="👤 계정 설정">
@@ -95,30 +75,15 @@ function Settings({ user, onClose, onLogout, onGoEdu }) {
                 ? <span style={{ fontSize: 11, color: '#4CAF50', fontWeight: 700 }}>전송됨 ✓</span>
                 : <span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>}
               onClick={handlePasswordReset} />
-            <Item icon="🚫" label="차단 목록" sub="차단한 선생님 관리" right={<span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>} onClick={handleShowBlocked} />
             <Item icon="🗑️" label="계정 탈퇴" sub="탈퇴 시 모든 데이터 삭제" right={<span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>} onClick={() => setShowDeleteConfirm(true)} danger />
           </Section>
 
           {/* 앱 정보 */}
           <Section title="ℹ️ 앱 정보">
-            <Item icon="📄" label="이용약관" right={<span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>} onClick={() => setShowTerms(true)} />
-            <Item icon="🔒" label="개인정보처리방침" right={<span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>} onClick={() => setShowPrivacy(true)} />
             <Item icon="📱" label="버전 정보" sub="티처밋 v1.0.0" right={<span style={{ fontSize: 11, color: '#F4845F', fontWeight: 700 }}>최신버전</span>} />
           </Section>
 
-          <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 16, overflow: 'hidden' }}>
-          <div style={{ padding: '10px 16px', background: '#FFF0EB', fontSize: 11, fontWeight: 800, color: '#C23B22', fontFamily: 'Nunito, sans-serif' }}>🎓 에듀</div>
-          <div onClick={onGoEdu} style={{ padding: '13px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: '#FFF0EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>🎓</div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>에듀 충전하기</div>
-                <div style={{ fontSize: 10, color: '#FDBCAA', fontWeight: 600, marginTop: 1, fontFamily: 'Nunito, sans-serif' }}>티처밋 전용 포인트</div>
-              </div>
-            </div>
-            <span style={{ fontSize: 12, color: '#FDBCAA' }}>→</span>
-          </div>
-        </div>
+          
 
         <button onClick={onLogout} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#ff4757', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif' }}>로그아웃</button>
 
@@ -126,30 +91,7 @@ function Settings({ user, onClose, onLogout, onGoEdu }) {
         </div>
       </div>
 
-      {/* 차단 목록 모달 */}
-      {showBlocked && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: 'white', borderRadius: 24, width: '100%', maxWidth: 360, padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>차단 목록 🚫</div>
-              <button onClick={() => setShowBlocked(false)} style={{ background: '#FFF0EB', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
-            </div>
-            {blockedList.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '24px 0', color: '#FDBCAA', fontSize: 14, fontFamily: 'Nunito, sans-serif' }}>차단한 선생님이 없어요</div>
-            ) : (
-              blockedList.map(u => (
-                <div key={u.uid} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #FFF0EB' }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#FFF0EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{u.gender === '남성' ? '👨‍🏫' : '👩‍🏫'}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>{u.name}</div>
-                    <div style={{ fontSize: 11, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif' }}>{u.region} · {u.level}</div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
+      
 
       {/* 계정 탈퇴 확인 모달 */}
       {showDeleteConfirm && (
@@ -166,49 +108,9 @@ function Settings({ user, onClose, onLogout, onGoEdu }) {
         </div>
       )}
 
-      {/* 이용약관 모달 */}
-      {showTerms && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: 'white', borderRadius: 24, width: '100%', maxWidth: 360, maxHeight: '80vh', overflowY: 'auto', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>이용약관 📄</div>
-              <button onClick={() => setShowTerms(false)} style={{ background: '#FFF0EB', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
-            </div>
-            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8, fontFamily: 'Nunito, sans-serif' }}>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>제1조 (목적)</p>
-              <p style={{ marginBottom: 16 }}>본 약관은 티처밋 서비스의 이용 조건 및 절차, 이용자와 회사 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>제2조 (서비스 이용)</p>
-              <p style={{ marginBottom: 16 }}>티처밋은 교원 자격을 보유한 사용자만 이용 가능하며, 허위 정보 등록 시 서비스 이용이 제한될 수 있습니다.</p>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>제3조 (금지 행위)</p>
-              <p style={{ marginBottom: 16 }}>타인에 대한 허위 사실 유포, 음란물 게시, 개인정보 무단 수집 등의 행위를 금지합니다.</p>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>제4조 (서비스 변경 및 중단)</p>
-              <p>회사는 서비스 내용을 변경하거나 중단할 수 있으며, 이 경우 사전 공지합니다.</p>
-            </div>
-          </div>
-        </div>
-      )}
+      
 
-      {/* 개인정보처리방침 모달 */}
-      {showPrivacy && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-          <div style={{ background: 'white', borderRadius: 24, width: '100%', maxWidth: 360, maxHeight: '80vh', overflowY: 'auto', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>개인정보처리방침 🔒</div>
-              <button onClick={() => setShowPrivacy(false)} style={{ background: '#FFF0EB', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
-            </div>
-            <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8, fontFamily: 'Nunito, sans-serif' }}>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>수집하는 개인정보</p>
-              <p style={{ marginBottom: 16 }}>이름, 이메일, 생년월일, 소속학교, 프로필 사진, 위치 정보 등을 수집합니다.</p>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>개인정보 이용 목적</p>
-              <p style={{ marginBottom: 16 }}>수집된 정보는 교원 인증 및 매칭 서비스 제공 목적으로만 사용됩니다.</p>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>개인정보 보관 기간</p>
-              <p style={{ marginBottom: 16 }}>회원 탈퇴 시 즉시 삭제되며, 관련 법령에 따라 일정 기간 보관될 수 있습니다.</p>
-              <p style={{ fontWeight: 700, color: '#3D1008', marginBottom: 8 }}>개인정보 제3자 제공</p>
-              <p>이용자의 동의 없이 제3자에게 개인정보를 제공하지 않습니다.</p>
-            </div>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }
