@@ -56,8 +56,8 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const initialAge = userProfile.isVerified && verifiedAge ? verifiedAge : (userProfile.age || '');
   const initialGender = userProfile.isVerified && userProfile.verifiedGender ? userProfile.verifiedGender : (userProfile.gender || '');
 
-  const [age, setAge] = useState(initialAge);
-  const [gender, setGender] = useState(initialGender);
+  const [age] = useState(initialAge);
+  const [gender] = useState(initialGender);
   const [height, setHeight] = useState(userProfile.height || '');
   const [bodyType, setBodyType] = useState(userProfile.bodyType || '');
   const [mbti, setMbti] = useState(userProfile.mbti || '');
