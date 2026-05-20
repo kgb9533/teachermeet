@@ -9,7 +9,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
-import VerifiedBadge from './VerifiedBadge';
 import { spendEdu, subscribeEduBalance } from './eduWallet';
 import { EDU_COSTS } from './eduPackages';
 import { getBlockedUids, getBlockedByUids } from './reports';
@@ -303,7 +302,6 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
               <div style={styles.nameRow}>
                 <span style={styles.name}>{currentCard.name}, {currentCard.age}</span>
                 {currentCard.verifyStatus === 'approved' && <span style={{ fontSize: 16 }}>✅</span>}
-                {currentCard.isVerified && <VerifiedBadge size={16} />}
               </div>
               <div style={styles.subInfo}>
                 {displayShort(currentCard.region, 2)}

@@ -3,8 +3,6 @@ import { db } from './firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import Verify from './Verify';
 import Admin from './Admin';
-import VerifiedBadge from './VerifiedBadge';
-import { requestPhoneVerification } from './phoneAuth';
 import BlockList from './BlockList';
 import { toArray } from './utils';
 import AllPolicies from './AllPolicies';
@@ -86,7 +84,7 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showBlockList, setShowBlockList] = useState(false);
   const [policyPage, setPolicyPage] = useState(null);
-  const [openSections, setOpenSections] = useState({ '기본 정보': false, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false });
+  const [openSections, setOpenSections] = useState({ '기본 정보': false, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false, '교원 인증': false });
 
   const toggleHobby = (h) => setHobbies(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
   const toggleLevel = (v) => setLevel(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
@@ -203,72 +201,58 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
         {openSections['기본 정보'] && (
           <div>
             <div className="input-group"><label>닉네임</label><input type="text" value={name} onChange={e => setName(e.target.value)} /></div>
-            {/* 나이 - 본인인증 여부에 따라 잠금/자유 */}
+            {/* 나이 (가입 시 본인인증으로 결정 - 잠금) */}
             <div className="input-group">
               <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 나이
-                {userProfile.isVerified && <span style={{ fontSize: 12 }}>🔒</span>}
+                <span style={{ fontSize: 12 }}>🔒</span>
               </label>
-              {userProfile.isVerified ? (
-                <div style={{
-                  background: '#F5EEEA',
-                  border: '1.5px solid #E8D5CC',
-                  borderRadius: 14,
-                  padding: '13px 18px',
-                  fontSize: 15,
-                  color: '#9C5A4A',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontFamily: 'Nunito, sans-serif',
-                  fontWeight: 700,
-                }}>
-                  <span>{age}{age && '세'}</span>
-                  <span style={{ fontSize: 13 }}>🔒</span>
-                </div>
-              ) : (
-                <input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="예: 30" />
-              )}
+              <div style={{
+                background: '#F5EEEA',
+                border: '1.5px solid #E8D5CC',
+                borderRadius: 14,
+                padding: '13px 18px',
+                fontSize: 15,
+                color: '#9C5A4A',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                fontFamily: 'Nunito, sans-serif',
+                fontWeight: 700,
+              }}>
+                <span>{age}{age && '세'}</span>
+                <span style={{ fontSize: 13 }}>🔒</span>
+              </div>
               <div style={{
                 marginTop: 6,
                 fontSize: 11,
-                color: userProfile.isVerified ? '#1DA1F2' : '#9C5A4A',
+                color: '#1DA1F2',
                 fontFamily: 'Nunito, sans-serif',
                 fontWeight: 500,
               }}>
-                {userProfile.isVerified ? '✓ 본인인증 정보예요' : '📱 본인인증하면 자동으로 적용돼요'}
+                ✓ 본인인증으로 변경할 수 없습니다
               </div>
             </div>
 
-            {/* 성별 - 본인인증 여부에 따라 잠금/자유 */}
+            {/* 성별 (가입 시 본인인증으로 결정 - 잠금) */}
             <div className="input-group">
               <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 성별
-                {userProfile.isVerified && <span style={{ fontSize: 12 }}>🔒</span>}
+                <span style={{ fontSize: 12 }}>🔒</span>
               </label>
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                 {['남성', '여성'].map(g => {
                   const isSelected = gender === g;
-                  const isLocked = userProfile.isVerified;
                   return (
-                    <button
+                    <div
                       key={g}
-                      onClick={() => !isLocked && setGender(g)}
-                      disabled={isLocked}
                       style={{
                         flex: 1,
                         padding: '13px',
                         borderRadius: 14,
-                        cursor: isLocked ? 'not-allowed' : 'pointer',
-                        border: isSelected
-                          ? (isLocked ? '2px solid #E8D5CC' : '2px solid #F4845F')
-                          : '1.5px solid #FDBCAA',
-                        background: isSelected
-                          ? (isLocked ? '#F5EEEA' : '#FFF0EB')
-                          : (isLocked ? '#FAFAFA' : 'white'),
-                        color: isSelected
-                          ? (isLocked ? '#9C5A4A' : '#C23B22')
-                          : (isLocked ? '#C5B5AC' : '#aaa'),
+                        border: isSelected ? '2px solid #E8D5CC' : '1.5px solid #E8D5CC',
+                        background: isSelected ? '#F5EEEA' : '#FAFAFA',
+                        color: isSelected ? '#9C5A4A' : '#C5B5AC',
                         fontWeight: isSelected ? 700 : 400,
                         fontSize: 15,
                         fontFamily: 'Nunito, sans-serif',
@@ -276,22 +260,23 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 6,
+                        cursor: 'not-allowed',
                       }}
                     >
                       {g}
-                      {isSelected && isLocked && <span style={{ fontSize: 11 }}>🔒</span>}
-                    </button>
+                      {isSelected && <span style={{ fontSize: 11 }}>🔒</span>}
+                    </div>
                   );
                 })}
               </div>
               <div style={{
                 marginTop: 6,
                 fontSize: 11,
-                color: userProfile.isVerified ? '#1DA1F2' : '#9C5A4A',
+                color: '#1DA1F2',
                 fontFamily: 'Nunito, sans-serif',
                 fontWeight: 500,
               }}>
-                {userProfile.isVerified ? '✓ 본인인증 정보예요' : '📱 본인인증하면 자동으로 적용돼요'}
+                ✓ 본인인증으로 변경할 수 없습니다
               </div>
             </div>
             <div className="input-group"><label>키 (cm)</label><input type="number" value={height} onChange={e => setHeight(e.target.value)} placeholder="예: 170" /></div>
@@ -420,76 +405,67 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
           </div>
         )}
 
-        <div style={{ borderTop: '1px solid #FDBCAA', paddingTop: 24, marginTop: 8 }}>
-          
-
-          {/* 휴대폰 본인인증 영역 */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>
-              본인인증
-            </div>
-            {userProfile.isVerified ? (
-              <div style={{ background: '#F0F9FF', border: '1.5px solid #1DA1F2', borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <VerifiedBadge size={20} style={{ marginLeft: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1DA1F2', fontFamily: 'Nunito, sans-serif' }}>
-                    본인인증 완료
-                  </div>
-                  <div style={{ fontSize: 11, color: '#666', marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>
-                    {userProfile.verifiedName ? `${userProfile.verifiedName}님 인증 완료` : '휴대폰 본인인증 완료'}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={async () => {
-                  try {
-                    const customer = await requestPhoneVerification();
-                    await updateDoc(doc(db, 'users', user.uid), {
-                      isVerified: true,
-                      verifiedName: customer.name,
-                      verifiedBirth: customer.birthDate,
-                      verifiedGender: customer.gender,
-                      verifiedCI: customer.ci,
-                      verifiedDI: customer.di,
-                      phone: customer.phone,
-                      verifiedAt: new Date(),
-                    });
-                    onUpdate({ ...userProfile, isVerified: true, verifiedName: customer.name });
-                    alert('본인인증이 완료되었어요! ✓');
-                  } catch (e) {
-                    alert(e.message || '본인인증에 실패했어요.');
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  background: 'linear-gradient(135deg, #4FC3F7, #1DA1F2)',
-                  border: 'none',
-                  borderRadius: 14,
-                  color: 'white',
-                  fontSize: 15,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: 'Nunito, sans-serif',
-                  boxShadow: '0 4px 12px rgba(29, 161, 242, 0.3)',
-                }}
-              >
-                📱 휴대폰으로 본인인증하기
-              </button>
-            )}
-            <div style={{ fontSize: 11, color: '#9C5A4A', marginTop: 8, lineHeight: 1.6, fontFamily: 'Nunito, sans-serif' }}>
-              본인인증을 받으면 프로필에 파란 인증 마크가 표시되어 더 신뢰감을 줄 수 있어요!
-            </div>
-          </div>
-
-          {/* 교원 인증 영역 (기존) */}
-          <Verify user={user} userProfile={userProfile} onUpdate={onUpdate} />
+        {/* 저장하기 (연애 스타일 아래) */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24, marginBottom: 8 }}>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            style={{
+              background: loading ? '#FDBCAA' : 'linear-gradient(135deg, #F4845F, #E8603A)',
+              border: 'none',
+              borderRadius: 10,
+              padding: '8px 20px',
+              fontSize: 12,
+              color: 'white',
+              fontWeight: 700,
+              fontFamily: 'Nunito, sans-serif',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: '0 2px 6px rgba(244,132,95,0.25)',
+              minWidth: '48%',
+              opacity: loading ? 0.7 : 1,
+              transition: 'all 0.15s',
+            }}
+          >
+            {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '💾 저장하기'}
+          </button>
         </div>
 
-        <button className="btn-primary" onClick={handleSave} disabled={loading} style={{ marginTop: 24 }}>
-          {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '저장하기'}
-        </button>
+        {/* 교원 인증 (아코디언) */}
+        <SectionTitle
+          title={
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              📁 교원 인증
+              {userProfile.verifyStatus === 'approved' && (
+                <span style={{ background: '#DCFCE7', color: '#166534', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>
+                  ✅ 완료
+                </span>
+              )}
+              {userProfile.verifyStatus === 'pending' && (
+                <span style={{ background: '#FEF3C7', color: '#92400E', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>
+                  ⏳ 심사 중
+                </span>
+              )}
+              {userProfile.verifyStatus === 'rejected' && (
+                <span style={{ background: '#FEE2E2', color: '#991B1B', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>
+                  ❌ 반려됨
+                </span>
+              )}
+              {!userProfile.verifyStatus && (
+                <span style={{ background: '#FFF0EB', color: '#C23B22', padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>
+                  미인증
+                </span>
+              )}
+            </span>
+          }
+          isOpen={openSections['교원 인증']}
+          onToggle={() => toggleSection('교원 인증')}
+        />
+        {openSections['교원 인증'] && (
+          <div>
+            <Verify user={user} userProfile={userProfile} onUpdate={onUpdate} />
+          </div>
+        )}
+
 
         {showAdmin && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'white', zIndex: 9999, display: 'flex', flexDirection: 'column' }}>

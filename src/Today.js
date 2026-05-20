@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
-import VerifiedBadge from './VerifiedBadge';
 import { getBlockedUids, getBlockedByUids } from './reports';
 import { toArray, displayShort, commonItems } from './utils';
 
@@ -151,7 +150,6 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
             <span style={{ fontSize: 19, fontWeight: 800, fontFamily: 'Nunito, sans-serif' }}>{profile.name}</span>
             <span style={{ fontSize: 15, fontWeight: 600, opacity: 0.85, fontFamily: 'Nunito, sans-serif' }}>{profile.age}</span>
             {profile.verifyStatus === 'approved' && <span style={{ fontSize: 13, marginLeft: 2 }}>✅</span>}
-            {profile.isVerified && <VerifiedBadge size={14} />}
           </div>
           <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
             📍 {displayShort(profile.region, 2)}

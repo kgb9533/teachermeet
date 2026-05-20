@@ -4,7 +4,6 @@ import { collection, addDoc, onSnapshot, query, orderBy, doc, getDoc, getDocs, u
 import { rtdb } from './firebase';
 import { ref, onValue } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import VerifiedBadge from './VerifiedBadge';
 import Report from './Report';
 import { blockUser } from './reports';
 
@@ -153,7 +152,7 @@ function ChatRoom({ user, matchId, otherUser, onBack }) {
           <div style={{ fontWeight: 700, fontSize: 15, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>
             {otherUser?.name}
             {otherUser?.verifyStatus === 'approved' && <span style={{ marginLeft: 4, fontSize: 13 }}>✅</span>}
-            {otherUser?.isVerified && <VerifiedBadge size={13} />}
+            
           </div>
           <div style={{ fontSize: 12, color: '#FDBCAA', marginTop: 1, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>{otherUser?.subject} · {otherUser?.region}</div>
         </div>
@@ -691,7 +690,7 @@ function Chat({ user, onGoSwipe }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0, flex: 1 }}>
                       <span style={{ fontWeight: 700, fontSize: 15, color: '#3D1008', fontFamily: 'Nunito, sans-serif', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{match.otherUser?.name}</span>
                       {match.otherUser?.verifyStatus === 'approved' && <span style={{ fontSize: 13, flexShrink: 0 }}>✅</span>}
-                      {match.otherUser?.isVerified && <VerifiedBadge size={13} />}
+                      
                       <span style={{ fontSize: 10, color: '#9C5A4A', fontWeight: 600, fontFamily: 'Nunito, sans-serif', flexShrink: 0, marginLeft: 2 }}>· {match.otherUser?.subject}·{match.otherUser?.region}</span>
                     </div>
                     {lastMsg && (

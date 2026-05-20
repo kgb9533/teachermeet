@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
-import VerifiedBadge from './VerifiedBadge';
 import { getBlockedUids, getBlockedByUids } from './reports';
 
 function Likes({ user, onMatch }) {
@@ -159,7 +158,7 @@ function Likes({ user, onMatch }) {
                     <span style={{ fontSize: 15, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>{profile.name}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: '#9C5A4A', fontFamily: 'Nunito, sans-serif' }}>{profile.age}</span>
                     {profile.verifyStatus === 'approved' && <span style={{ fontSize: 12 }}>✅</span>}
-                    {profile.isVerified && <VerifiedBadge size={13} />}
+                    
                   </div>
 
                   {/* 정보 태그들 */}
