@@ -6,14 +6,8 @@ import Admin from './Admin';
 import VerifiedBadge from './VerifiedBadge';
 import { requestPhoneVerification } from './phoneAuth';
 import BlockList from './BlockList';
-import { enableNotifications, disableNotifications } from './notifications';
-import Terms from './Terms';
-import Privacy from './Privacy';
-import Refund from './Refund';
-import Youth from './Youth';
-import LocationTerms from './LocationTerms';
-import Community from './Community';
-import BusinessInfo from './BusinessInfo';
+import { toArray } from './utils';
+import AllPolicies from './AllPolicies';
 
 const SUBJECTS = ['국어', '영어', '수학', '과학', '사회', '역사', '체육', '음악', '미술', '기술', '도덕', '초등 전과목', '기타'];
 const REGIONS = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
@@ -73,15 +67,15 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const [drink, setDrink] = useState(userProfile.drink || '');
   const [smoke, setSmoke] = useState(userProfile.smoke || '');
   const [marriageIntent, setMarriageIntent] = useState(userProfile.marriageIntent || '');
-  const [level, setLevel] = useState(userProfile.level || '');
-  const [subject, setSubject] = useState(userProfile.subject || '');
-  const [region, setRegion] = useState(userProfile.region || '');
-  const [hobbies, setHobbies] = useState(userProfile.hobbies || []);
-  const [foodPref, setFoodPref] = useState(userProfile.foodPref || '');
-  const [travelStyle, setTravelStyle] = useState(userProfile.travelStyle || '');
-  const [weekendActivity, setWeekendActivity] = useState(userProfile.weekendActivity || '');
-  const [loveStyle, setLoveStyle] = useState(userProfile.loveStyle || '');
-  const [dateStyle, setDateStyle] = useState(userProfile.dateStyle || '');
+  const [level, setLevel] = useState(toArray(userProfile.level));
+  const [subject, setSubject] = useState(toArray(userProfile.subject));
+  const [region, setRegion] = useState(toArray(userProfile.region));
+  const [hobbies, setHobbies] = useState(toArray(userProfile.hobbies));
+  const [foodPref, setFoodPref] = useState(toArray(userProfile.foodPref));
+  const [travelStyle, setTravelStyle] = useState(toArray(userProfile.travelStyle));
+  const [weekendActivity, setWeekendActivity] = useState(toArray(userProfile.weekendActivity));
+  const [loveStyle, setLoveStyle] = useState(toArray(userProfile.loveStyle));
+  const [dateStyle, setDateStyle] = useState(toArray(userProfile.dateStyle));
   const [myCharm, setMyCharm] = useState(userProfile.myCharm || '');
   const [idealType, setIdealType] = useState(userProfile.idealType || '');
   const [bio, setBio] = useState(userProfile.bio || '');
@@ -92,10 +86,17 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showBlockList, setShowBlockList] = useState(false);
   const [policyPage, setPolicyPage] = useState(null);
-  const [notifLoading, setNotifLoading] = useState(false);
   const [openSections, setOpenSections] = useState({ '기본 정보': false, '신상 상세': false, '근무 정보': false, '라이프스타일': false, '연애 스타일': false });
 
   const toggleHobby = (h) => setHobbies(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
+  const toggleLevel = (v) => setLevel(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleSubject = (v) => setSubject(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleRegion = (v) => setRegion(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleFoodPref = (v) => setFoodPref(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleTravelStyle = (v) => setTravelStyle(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleWeekendActivity = (v) => setWeekendActivity(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleLoveStyle = (v) => setLoveStyle(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleDateStyle = (v) => setDateStyle(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
   const toggleSection = (title) => setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
 
   const handlePhotoChange = (e) => {
@@ -128,32 +129,7 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
     }));
     return [...existingUrls, ...newUrls].slice(0, 6);
   };
-// ===== 알림 켜기 =====
-  const handleEnableNotifications = async () => {
-    setNotifLoading(true);
-    try {
-      await enableNotifications(user.uid);
-      onUpdate({ ...userProfile, notificationsEnabled: true });
-      alert('알림이 켜졌어요! 🔔\n매칭, 메시지 알림을 받을 수 있어요.');
-    } catch (e) {
-      alert(e.message || '알림 켜기에 실패했어요.');
-    }
-    setNotifLoading(false);
-  };
 
-  // ===== 알림 끄기 =====
-  const handleDisableNotifications = async () => {
-    if (!window.confirm('알림을 끄시겠어요?\n매칭/메시지 알림을 받을 수 없게 돼요.')) return;
-    setNotifLoading(true);
-    try {
-      await disableNotifications(user.uid);
-      onUpdate({ ...userProfile, notificationsEnabled: false });
-      alert('알림을 껐어요.');
-    } catch (e) {
-      alert('알림 끄기에 실패했어요.');
-    }
-    setNotifLoading(false);
-  };
 
 
   const handleSave = async () => {
@@ -342,27 +318,99 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
         <SectionTitle title="근무 정보" isOpen={openSections['근무 정보']} onToggle={() => toggleSection('근무 정보')} />
         {openSections['근무 정보'] && (
           <div>
-            <div className="input-group"><label>학교 급별</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{LEVELS.map(l => <button key={l} onClick={() => setLevel(l)} style={chipStyle(level === l)}>{l}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>담당 과목</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{SUBJECTS.map(s => <button key={s} onClick={() => setSubject(s)} style={chipStyle(subject === s)}>{s}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>근무 지역</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{REGIONS.map(r => <button key={r} onClick={() => setRegion(r)} style={chipStyle(region === r)}>{r}</button>)}</div></div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                학교 급별
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {LEVELS.map(l => <button key={l} onClick={() => toggleLevel(l)} style={chipStyle(level.includes(l))}>{l}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                담당 과목
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {SUBJECTS.map(s => <button key={s} onClick={() => toggleSubject(s)} style={chipStyle(subject.includes(s))}>{s}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                근무 지역
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {REGIONS.map(r => <button key={r} onClick={() => toggleRegion(r)} style={chipStyle(region.includes(r))}>{r}</button>)}
+              </div>
+            </div>
           </div>
         )}
 
         <SectionTitle title="라이프스타일" isOpen={openSections['라이프스타일']} onToggle={() => toggleSection('라이프스타일')} />
         {openSections['라이프스타일'] && (
           <div>
-            <div className="input-group"><label>취미</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{HOBBIES.map(h => <button key={h} onClick={() => toggleHobby(h)} style={chipStyle(hobbies.includes(h))}>{h}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>음식 취향</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{FOOD_PREFS.map(f => <button key={f} onClick={() => setFoodPref(f)} style={chipStyle(foodPref === f)}>{f}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>여행 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{TRAVEL_STYLES.map(tr => <button key={tr} onClick={() => setTravelStyle(tr)} style={chipStyle(travelStyle === tr)}>{tr}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>주말에 주로</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{WEEKEND_ACTIVITIES.map(w => <button key={w} onClick={() => setWeekendActivity(w)} style={chipStyle(weekendActivity === w)}>{w}</button>)}</div></div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                취미
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {HOBBIES.map(h => <button key={h} onClick={() => toggleHobby(h)} style={chipStyle(hobbies.includes(h))}>{h}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                음식 취향
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {FOOD_PREFS.map(f => <button key={f} onClick={() => toggleFoodPref(f)} style={chipStyle(foodPref.includes(f))}>{f}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                여행 스타일
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {TRAVEL_STYLES.map(tr => <button key={tr} onClick={() => toggleTravelStyle(tr)} style={chipStyle(travelStyle.includes(tr))}>{tr}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                주말에 주로
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {WEEKEND_ACTIVITIES.map(w => <button key={w} onClick={() => toggleWeekendActivity(w)} style={chipStyle(weekendActivity.includes(w))}>{w}</button>)}
+              </div>
+            </div>
           </div>
         )}
 
         <SectionTitle title="연애 스타일" isOpen={openSections['연애 스타일']} onToggle={() => toggleSection('연애 스타일')} />
         {openSections['연애 스타일'] && (
           <div>
-            <div className="input-group"><label>연애 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{LOVE_STYLES.map(l => <button key={l} onClick={() => setLoveStyle(l)} style={chipStyle(loveStyle === l)}>{l}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>첫 데이트 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{DATE_STYLES.map(d => <button key={d} onClick={() => setDateStyle(d)} style={chipStyle(dateStyle === d)}>{d}</button>)}</div></div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                연애 스타일
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {LOVE_STYLES.map(l => <button key={l} onClick={() => toggleLoveStyle(l)} style={chipStyle(loveStyle.includes(l))}>{l}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                첫 데이트 스타일
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {DATE_STYLES.map(d => <button key={d} onClick={() => toggleDateStyle(d)} style={chipStyle(dateStyle.includes(d))}>{d}</button>)}
+              </div>
+            </div>
             <div className="input-group" style={{ marginTop: 16 }}><label>나의 장점</label><input type="text" value={myCharm} onChange={e => setMyCharm(e.target.value)} placeholder="예: 유머감각이 넘쳐요 😄" /></div>
             <div className="input-group"><label>이상형 한 줄 소개</label><input type="text" value={idealType} onChange={e => setIdealType(e.target.value)} placeholder="예: 함께 있으면 편한 사람" /></div>
             <div className="input-group">
@@ -373,72 +421,7 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
         )}
 
         <div style={{ borderTop: '1px solid #FDBCAA', paddingTop: 24, marginTop: 8 }}>
-          {/* 알림 설정 영역 */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>
-              알림 설정
-            </div>
-            {userProfile.notificationsEnabled ? (
-              <div style={{ background: '#FFFAF8', border: '1.5px solid #FDBCAA', borderRadius: 14, padding: '14px 16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <span style={{ fontSize: 22 }}>🔔</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#3D1008', fontFamily: 'Nunito, sans-serif' }}>
-                      알림 받기 활성화됨
-                    </div>
-                    <div style={{ fontSize: 11, color: '#9C5A4A', marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>
-                      매칭, 메시지 알림을 받고 있어요
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={handleDisableNotifications}
-                  disabled={notifLoading}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    background: 'white',
-                    color: '#9C5A4A',
-                    border: '1.5px solid #FDBCAA',
-                    borderRadius: 10,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    cursor: notifLoading ? 'not-allowed' : 'pointer',
-                    fontFamily: 'Nunito, sans-serif',
-                    opacity: notifLoading ? 0.5 : 1,
-                  }}
-                >
-                  {notifLoading ? '처리 중...' : '알림 끄기'}
-                </button>
-              </div>
-            ) : (
-              <>
-                <button
-                  onClick={handleEnableNotifications}
-                  disabled={notifLoading}
-                  style={{
-                    width: '100%',
-                    padding: '14px',
-                    background: 'linear-gradient(135deg, #F4845F, #E8603A)',
-                    border: 'none',
-                    borderRadius: 14,
-                    color: 'white',
-                    fontSize: 15,
-                    fontWeight: 700,
-                    cursor: notifLoading ? 'not-allowed' : 'pointer',
-                    fontFamily: 'Nunito, sans-serif',
-                    boxShadow: '0 4px 12px rgba(232, 96, 58, 0.3)',
-                    opacity: notifLoading ? 0.6 : 1,
-                  }}
-                >
-                  {notifLoading ? '권한 요청 중...' : '🔔 알림 받기'}
-                </button>
-                <div style={{ fontSize: 11, color: '#9C5A4A', marginTop: 8, lineHeight: 1.6, fontFamily: 'Nunito, sans-serif' }}>
-                  매칭됐을 때, 메시지가 왔을 때 폰으로 알림을 받을 수 있어요!
-                </div>
-              </>
-            )}
-          </div>
+          
 
           {/* 휴대폰 본인인증 영역 */}
           <div style={{ marginBottom: 20 }}>
@@ -518,50 +501,64 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
             <BlockList user={user} onBack={() => setShowBlockList(false)} />
           </div>
         )}
-        {/* 정책 및 약관 섹션 */}
-        <div style={{ marginTop: 24, marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#C23B22', letterSpacing: '0.5px', marginBottom: 12, fontFamily: 'Nunito, sans-serif' }}>
-            정책 및 약관
-          </div>
-          <div style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, overflow: 'hidden' }}>
-            {[
-              { emoji: '📋', label: '이용약관', page: 'terms' },
-              { emoji: '🔒', label: '개인정보처리방침', page: 'privacy' },
-              { emoji: '🛡️', label: '청소년보호정책', page: 'youth' },
-              { emoji: '📍', label: '위치기반서비스 이용약관', page: 'location' },
-              { emoji: '💰', label: '결제 및 환불정책', page: 'refund' },
-              { emoji: '📜', label: '커뮤니티 운영정책', page: 'community' },
-              { emoji: '🏢', label: '사업자 정보', page: 'business' },
-            ].map((item, idx, arr) => (
-              <button
-                key={item.page}
-                onClick={() => setPolicyPage(item.page)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  width: '100%',
-                  padding: '14px 16px',
-                  background: 'white',
-                  border: 'none',
-                  borderBottom: idx === arr.length - 1 ? 'none' : '0.5px solid #FDBCAA',
-                  cursor: 'pointer',
-                  fontFamily: 'Nunito, sans-serif',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{ fontSize: 18 }}>{item.emoji}</span>
-                <span style={{ flex: 1, fontSize: 14, color: '#3D1008', fontWeight: 600 }}>{item.label}</span>
-                <span style={{ color: '#FDBCAA', fontSize: 18, fontWeight: 400 }}>›</span>
-              </button>
-            ))}
-          </div>
-          <div style={{ marginTop: 14, padding: '4px 4px', fontSize: 11, color: '#9C5A4A', lineHeight: 1.7, textAlign: 'center', fontFamily: 'Nunito, sans-serif' }}>
-            <div style={{ fontWeight: 700, color: '#C23B22', fontSize: 12 }}>티처밋 · 대표 김규보</div>
-            <div>사업자등록번호 111-25-97394</div>
-            <div>고객문의 dbdus1357@naver.com</div>
-            <div style={{ fontSize: 10, opacity: 0.7, marginTop: 6 }}>© 2026 TeacherMeet. All rights reserved.</div>
-          </div>
+        {/* 차단한 사람 관리 (큰 바 - 유지) */}
+        <button onClick={() => setShowBlockList(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#9C5A4A', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 24 }}>🚫 차단한 사람 관리</button>
+
+        {/* 관리자 페이지 (관리자만, 큰 바 - 유지) */}
+        {user.email === 'dbdus1357@naver.com' && (
+          <button onClick={() => setShowAdmin(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#F4845F', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>🔧 관리자 페이지</button>
+        )}
+
+        {/* 약관 + 로그아웃 (작은 바 가로 두 개) */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <button
+            onClick={() => setPolicyPage('all')}
+            style={{
+              flex: 1,
+              padding: '10px 8px',
+              background: 'white',
+              border: '1px solid #FDBCAA',
+              borderRadius: 10,
+              color: '#9C5A4A',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'Nunito, sans-serif',
+            }}
+          >
+            📋 약관 및 정책
+          </button>
+          <button
+            onClick={onLogout}
+            style={{
+              flex: 1,
+              padding: '10px 8px',
+              background: 'white',
+              border: '1px solid #FDBCAA',
+              borderRadius: 10,
+              color: '#9C5A4A',
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'Nunito, sans-serif',
+            }}
+          >
+            로그아웃
+          </button>
+        </div>
+
+        {/* 사업자 정보 한 줄 요약 */}
+        <div style={{
+          marginTop: 14,
+          fontSize: 10,
+          color: '#9C5A4A',
+          textAlign: 'center',
+          opacity: 0.7,
+          fontFamily: 'Nunito, sans-serif',
+          lineHeight: 1.5,
+        }}>
+          티처밋 · 대표 김규보 · 사업자 111-25-97394<br />
+          © 2026 TeacherMeet. All rights reserved.
         </div>
 
         {/* 약관 모달 (오버레이) */}
@@ -623,23 +620,11 @@ function MyProfile({ user, userProfile, onUpdate, onLogout }) {
                 ✕
               </button>
               <div style={{ overflowY: 'auto', flex: 1 }}>
-                {policyPage === 'terms' && <Terms onBack={() => setPolicyPage(null)} />}
-                {policyPage === 'privacy' && <Privacy onBack={() => setPolicyPage(null)} />}
-                {policyPage === 'refund' && <Refund onBack={() => setPolicyPage(null)} />}
-                {policyPage === 'youth' && <Youth onBack={() => setPolicyPage(null)} />}
-                {policyPage === 'location' && <LocationTerms onBack={() => setPolicyPage(null)} />}
-                {policyPage === 'community' && <Community onBack={() => setPolicyPage(null)} />}
-                {policyPage === 'business' && <BusinessInfo onBack={() => setPolicyPage(null)} />}
+                <AllPolicies onBack={() => setPolicyPage(null)} />
               </div>
             </div>
           </div>
         )}
-
-        <button onClick={() => setShowBlockList(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#9C5A4A', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>🚫 차단한 사람 관리</button>
-        {user.email === 'dbdus1357@naver.com' && (
-          <button onClick={() => setShowAdmin(true)} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#F4845F', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>🔧 관리자 페이지</button>
-        )}
-        <button onClick={onLogout} style={{ width: '100%', padding: '14px', background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, color: '#aaa', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', marginTop: 10 }}>로그아웃</button>
       </div>
     </div>
   );

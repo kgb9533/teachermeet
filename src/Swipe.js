@@ -14,6 +14,7 @@ import { spendEdu, subscribeEduBalance } from './eduWallet';
 import { EDU_COSTS } from './eduPackages';
 import { getBlockedUids, getBlockedByUids } from './reports';
 import { recordProfileView } from './stats';
+import { displayShort } from './utils';
 
 function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
   const [candidates, setCandidates] = useState([]); // 보여줄 사용자 목록
@@ -305,8 +306,9 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
                 {currentCard.isVerified && <VerifiedBadge size={16} />}
               </div>
               <div style={styles.subInfo}>
-                {currentCard.region && `${currentCard.region}`}
-                {currentCard.subject && ` · ${currentCard.subject}`}
+                {displayShort(currentCard.region, 2)}
+                {currentCard.subject && currentCard.region && ' · '}
+                {displayShort(currentCard.subject, 2)}
               </div>
               {currentCard.mbti && (
                 <div style={styles.tagRow}>

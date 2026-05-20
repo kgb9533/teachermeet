@@ -3,6 +3,7 @@ import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import VerifiedBadge from './VerifiedBadge';
 import { getBlockedUids, getBlockedByUids } from './reports';
+import { toArray, displayShort, commonItems } from './utils';
 
 const MBTI_COMPATIBLE = {
   'INTJ': ['ENFP', 'ENTP'], 'INTP': ['ENFJ', 'ENTJ'],
@@ -17,17 +18,82 @@ const MBTI_COMPATIBLE = {
 
 function calculateScore(profile, userProfile, seenUids) {
   let score = 0; let reasons = [];
-  if (profile.region === userProfile.region) { score += 3; reasons.push(`📍 같은 지역 (${profile.region})`); }
-  if (profile.hobbies && userProfile.hobbies) {
-    const common = profile.hobbies.filter(h => userProfile.hobbies.includes(h));
-    if (common.length > 0) { score += common.length * 2; reasons.push(`🎯 공통 취미 ${common.length}개`); }
+
+  // 1) 공통 지역 (다중 선택 지원, 개수×점수)
+  const commonRegions = commonItems(profile.region, userProfile.region);
+  if (commonRegions.length > 0) {
+    score += commonRegions.length * 3;
+    reasons.push(`📍 공통 지역 ${commonRegions.length}개`);
   }
+
+  // 2) 공통 과목 (다중 선택 지원, 개수×점수)
+  const commonSubjects = commonItems(profile.subject, userProfile.subject);
+  if (commonSubjects.length > 0) {
+    score += commonSubjects.length * 2;
+    reasons.push(`📚 공통 과목 ${commonSubjects.length}개`);
+  }
+
+  // 3) 공통 학교 급별 (다중 선택 지원, 개수×점수)
+  const commonLevels = commonItems(profile.level, userProfile.level);
+  if (commonLevels.length > 0) {
+    score += commonLevels.length * 2;
+    reasons.push(`🏫 같은 학교급 ${commonLevels.length}개`);
+  }
+
+  // 4) 공통 취미 (다중 선택 지원, 개수×점수)
+  const commonHobbies = commonItems(profile.hobbies, userProfile.hobbies);
+  if (commonHobbies.length > 0) {
+    score += commonHobbies.length * 2;
+    reasons.push(`🎯 공통 취미 ${commonHobbies.length}개`);
+  }
+
+  // 5) 공통 라이프스타일 (음식 취향, 여행 스타일, 주말 활동 - 다중 선택 지원)
+  const commonFood = commonItems(profile.foodPref, userProfile.foodPref);
+  if (commonFood.length > 0) {
+    score += commonFood.length * 1;
+    reasons.push(`🍽️ 공통 음식 취향 ${commonFood.length}개`);
+  }
+  const commonTravel = commonItems(profile.travelStyle, userProfile.travelStyle);
+  if (commonTravel.length > 0) {
+    score += commonTravel.length * 1;
+    reasons.push(`✈️ 비슷한 여행 스타일 ${commonTravel.length}개`);
+  }
+  const commonWeekend = commonItems(profile.weekendActivity, userProfile.weekendActivity);
+  if (commonWeekend.length > 0) {
+    score += commonWeekend.length * 1;
+    reasons.push(`🌿 비슷한 주말 활동 ${commonWeekend.length}개`);
+  }
+
+  // 6) 공통 연애 스타일 (다중 선택 지원)
+  const commonLove = commonItems(profile.loveStyle, userProfile.loveStyle);
+  if (commonLove.length > 0) {
+    score += commonLove.length * 2;
+    reasons.push(`💕 비슷한 연애 스타일 ${commonLove.length}개`);
+  }
+  const commonDate = commonItems(profile.dateStyle, userProfile.dateStyle);
+  if (commonDate.length > 0) {
+    score += commonDate.length * 1;
+    reasons.push(`☕ 비슷한 데이트 스타일 ${commonDate.length}개`);
+  }
+
+  // 7) MBTI 궁합 (단일값 그대로)
   if (profile.mbti && userProfile.mbti) {
     const compatible = MBTI_COMPATIBLE[userProfile.mbti] || [];
     if (compatible.includes(profile.mbti)) { score += 2; reasons.push(`✨ MBTI 궁합`); }
   }
-  if (!seenUids.includes(profile.uid)) { score += 1; reasons.push('🆕 아직 만나지 않은 분'); }
-  if (profile.marriageIntent && userProfile.marriageIntent && profile.marriageIntent === userProfile.marriageIntent) { score += 1; reasons.push('💍 비슷한 연애 의향'); }
+
+  // 8) 결혼 의향 (단일값 그대로)
+  if (profile.marriageIntent && userProfile.marriageIntent && profile.marriageIntent === userProfile.marriageIntent) {
+    score += 1;
+    reasons.push('💍 비슷한 연애 의향');
+  }
+
+  // 9) 아직 안 만난 분 보너스
+  if (!seenUids.includes(profile.uid)) {
+    score += 1;
+    reasons.push('🆕 아직 만나지 않은 분');
+  }
+
   return { score, reasons };
 }
 
@@ -88,7 +154,9 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
             {profile.isVerified && <VerifiedBadge size={14} />}
           </div>
           <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 600, fontFamily: 'Nunito, sans-serif' }}>
-            📍 {profile.region} · {profile.level}
+            📍 {displayShort(profile.region, 2)}
+            {!toArray(profile.level).length || !toArray(profile.region).length ? '' : ' · '}
+            {displayShort(profile.level, 2)}
           </div>
         </div>
       </div>
@@ -133,7 +201,7 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
 
         {/* 추가 정보 태그들 */}
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 12 }}>
-          {profile.subject && (
+          {toArray(profile.subject).length > 0 && (
             <span style={{
               background: '#FFFAF8',
               color: '#9C5A4A',
@@ -144,7 +212,7 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
               border: '1px solid #FFD7C8',
               fontFamily: 'Nunito, sans-serif',
             }}>
-              📚 {profile.subject}
+              📚 {displayShort(profile.subject, 2)}
             </span>
           )}
           {profile.mbti && (
@@ -161,8 +229,8 @@ function ProfileCard({ profile, userProfile, reasons, user, onMatch }) {
               {profile.mbti}
             </span>
           )}
-          {profile.hobbies && profile.hobbies.slice(0, 2).map(h => {
-            const isCommon = userProfile.hobbies?.includes(h);
+          {toArray(profile.hobbies).slice(0, 2).map(h => {
+            const isCommon = toArray(userProfile.hobbies).includes(h);
             return (
               <span key={h} style={{
                 background: isCommon ? '#FFF0EB' : '#FFFAF8',

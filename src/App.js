@@ -13,6 +13,7 @@ import Home from './Home';
 import { THEMES } from './themes';
 import Logo from './Logo';
 import Footer from './Footer';
+import NotificationToggle from './NotificationToggle';
 import Terms from './Terms';
 import Privacy from './Privacy';
 import Refund from './Refund';
@@ -329,11 +330,18 @@ function App() {
               <Logo size={28} />
               <span style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>티처밋</span>
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif' }}>
-              {tab === 'likes' && '좋아요 💜'}
-              {tab === 'today' && '추천 ⭐'}
-              {tab === 'chat' && '매칭 💬'}
-              {tab === 'myprofile' && '프로필 👤'}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <NotificationToggle
+                user={user}
+                userProfile={userProfile}
+                onUpdate={(updated) => setUserProfile(updated)}
+              />
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#FDBCAA', fontFamily: 'Nunito, sans-serif' }}>
+                {tab === 'likes' && '좋아요 💜'}
+                {tab === 'today' && '추천 ⭐'}
+                {tab === 'chat' && '매칭 💬'}
+                {tab === 'myprofile' && '프로필 👤'}
+              </div>
             </div>
           </div>
         )}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { db, auth } from './firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { sendEmailVerification } from 'firebase/auth';
+import { toArray } from './utils';
 
 const SUBJECTS = ['국어', '영어', '수학', '과학', '사회', '역사', '체육', '음악', '미술', '기술', '도덕', '초등 전과목', '기타'];
 const REGIONS = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
@@ -41,15 +42,15 @@ function Profile({ user, onComplete, onBack }) {
   const [drink, setDrink] = useState('');
   const [smoke, setSmoke] = useState('');
   const [marriageIntent, setMarriageIntent] = useState('');
-  const [level, setLevel] = useState('');
-  const [subject, setSubject] = useState('');
-  const [region, setRegion] = useState('');
+  const [level, setLevel] = useState([]);
+  const [subject, setSubject] = useState([]);
+  const [region, setRegion] = useState([]);
   const [hobbies, setHobbies] = useState([]);
-  const [foodPref, setFoodPref] = useState('');
-  const [travelStyle, setTravelStyle] = useState('');
-  const [weekendActivity, setWeekendActivity] = useState('');
-  const [loveStyle, setLoveStyle] = useState('');
-  const [dateStyle, setDateStyle] = useState('');
+  const [foodPref, setFoodPref] = useState([]);
+  const [travelStyle, setTravelStyle] = useState([]);
+  const [weekendActivity, setWeekendActivity] = useState([]);
+  const [loveStyle, setLoveStyle] = useState([]);
+  const [dateStyle, setDateStyle] = useState([]);
   const [myCharm, setMyCharm] = useState('');
   const [idealType, setIdealType] = useState('');
   const [bio, setBio] = useState('');
@@ -138,6 +139,14 @@ function Profile({ user, onComplete, onBack }) {
   });
 
   const toggleHobby = (h) => setHobbies(prev => prev.includes(h) ? prev.filter(x => x !== h) : [...prev, h]);
+  const toggleLevel = (v) => setLevel(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleSubject = (v) => setSubject(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleRegion = (v) => setRegion(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleFoodPref = (v) => setFoodPref(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleTravelStyle = (v) => setTravelStyle(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleWeekendActivity = (v) => setWeekendActivity(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleLoveStyle = (v) => setLoveStyle(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
+  const toggleDateStyle = (v) => setDateStyle(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v]);
 
   const TOTAL_STEPS = 7;
 
@@ -302,12 +311,36 @@ function Profile({ user, onComplete, onBack }) {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif', marginBottom: 6 }}>근무 정보 🏫</div>
             <div style={{ fontSize: 14, color: '#FDBCAA', marginBottom: 24, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>어떤 선생님인가요?</div>
-            <div className="input-group"><label>학교 급별</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{LEVELS.map(l => <button key={l} onClick={() => setLevel(l)} style={chipStyle(level === l)}>{l}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>담당 과목</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{SUBJECTS.map(s => <button key={s} onClick={() => setSubject(s)} style={chipStyle(subject === s)}>{s}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>근무 지역</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{REGIONS.map(r => <button key={r} onClick={() => setRegion(r)} style={chipStyle(region === r)}>{r}</button>)}</div></div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                학교 급별
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {LEVELS.map(l => <button key={l} onClick={() => toggleLevel(l)} style={chipStyle(level.includes(l))}>{l}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                담당 과목
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {SUBJECTS.map(s => <button key={s} onClick={() => toggleSubject(s)} style={chipStyle(subject.includes(s))}>{s}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                근무 지역
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {REGIONS.map(r => <button key={r} onClick={() => toggleRegion(r)} style={chipStyle(region.includes(r))}>{r}</button>)}
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
               <button className="btn-secondary" onClick={() => setStep(4)}>← 이전</button>
-              <button className="btn-primary" onClick={() => setStep(6)} disabled={!level || !subject || !region}>다음 →</button>
+              <button className="btn-primary" onClick={() => setStep(6)} disabled={level.length === 0 || subject.length === 0 || region.length === 0}>다음 →</button>
             </div>
           </div>
         )}
@@ -317,10 +350,42 @@ function Profile({ user, onComplete, onBack }) {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif', marginBottom: 6 }}>라이프스타일 🌿</div>
             <div style={{ fontSize: 14, color: '#FDBCAA', marginBottom: 24, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>어떤 생활을 즐기세요?</div>
-            <div className="input-group"><label>취미 (여러 개 선택 가능)</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{HOBBIES.map(h => <button key={h} onClick={() => toggleHobby(h)} style={chipStyle(hobbies.includes(h))}>{h}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>음식 취향</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{FOOD_PREFS.map(f => <button key={f} onClick={() => setFoodPref(f)} style={chipStyle(foodPref === f)}>{f}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>여행 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{TRAVEL_STYLES.map(tr => <button key={tr} onClick={() => setTravelStyle(tr)} style={chipStyle(travelStyle === tr)}>{tr}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>주말에 주로</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{WEEKEND_ACTIVITIES.map(w => <button key={w} onClick={() => setWeekendActivity(w)} style={chipStyle(weekendActivity === w)}>{w}</button>)}</div></div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                취미
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {HOBBIES.map(h => <button key={h} onClick={() => toggleHobby(h)} style={chipStyle(hobbies.includes(h))}>{h}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                음식 취향
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {FOOD_PREFS.map(f => <button key={f} onClick={() => toggleFoodPref(f)} style={chipStyle(foodPref.includes(f))}>{f}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                여행 스타일
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {TRAVEL_STYLES.map(tr => <button key={tr} onClick={() => toggleTravelStyle(tr)} style={chipStyle(travelStyle.includes(tr))}>{tr}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                주말에 주로
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {WEEKEND_ACTIVITIES.map(w => <button key={w} onClick={() => toggleWeekendActivity(w)} style={chipStyle(weekendActivity.includes(w))}>{w}</button>)}
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
               <button className="btn-secondary" onClick={() => setStep(5)}>← 이전</button>
               <button className="btn-primary" onClick={() => setStep(7)}>다음 →</button>
@@ -333,8 +398,24 @@ function Profile({ user, onComplete, onBack }) {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: '#3D1008', fontFamily: 'Nunito, sans-serif', marginBottom: 6 }}>연애 스타일 💕</div>
             <div style={{ fontSize: 14, color: '#FDBCAA', marginBottom: 24, fontFamily: 'Nunito, sans-serif', fontWeight: 600 }}>마지막 단계예요!</div>
-            <div className="input-group"><label>연애 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{LOVE_STYLES.map(l => <button key={l} onClick={() => setLoveStyle(l)} style={chipStyle(loveStyle === l)}>{l}</button>)}</div></div>
-            <div className="input-group" style={{ marginTop: 16 }}><label>첫 데이트 스타일</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>{DATE_STYLES.map(d => <button key={d} onClick={() => setDateStyle(d)} style={chipStyle(dateStyle === d)}>{d}</button>)}</div></div>
+            <div className="input-group">
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                연애 스타일
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {LOVE_STYLES.map(l => <button key={l} onClick={() => toggleLoveStyle(l)} style={chipStyle(loveStyle.includes(l))}>{l}</button>)}
+              </div>
+            </div>
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                첫 데이트 스타일
+                <span style={{ fontSize: 9, color: '#9C5A4A', fontWeight: 500, background: '#FFF0EB', padding: '2px 6px', borderRadius: 8 }}>여러 개 가능</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 4 }}>
+                {DATE_STYLES.map(d => <button key={d} onClick={() => toggleDateStyle(d)} style={chipStyle(dateStyle.includes(d))}>{d}</button>)}
+              </div>
+            </div>
             <div className="input-group" style={{ marginTop: 16 }}><label>나의 장점</label><input type="text" placeholder="예: 유머감각이 넘쳐요 😄" value={myCharm} onChange={e => setMyCharm(e.target.value)} /></div>
             <div className="input-group"><label>이상형 한 줄 소개</label><input type="text" placeholder="예: 함께 있으면 편한 사람" value={idealType} onChange={e => setIdealType(e.target.value)} /></div>
             <div className="input-group">
