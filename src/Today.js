@@ -396,7 +396,9 @@ function Today({ user, userProfile, onMatch }) {
   useEffect(() => {
     const fetchToday = async () => {
       const snap = await getDocs(collection(db, 'users'));
-      let profiles = snap.docs.map(d => d.data()).filter(p => p.uid !== user.uid);
+      let profiles = snap.docs.map(d => d.data())
+        .filter(p => p.uid !== user.uid)
+        .filter(p => p.gender && userProfile.gender && p.gender !== userProfile.gender); // 이성만
       if (profiles.length === 0) { setLoading(false); return; }
 
       // 차단한/나를 차단한 사람 가져오기

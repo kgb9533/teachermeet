@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getBlockedUids, getBlockedByUids } from './reports';
+import { getDistanceBadge } from './utils';
 
-function Likes({ user, onMatch }) {
+function Likes({ user, userProfile, onMatch }) {
   const [likedMe, setLikedMe] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,7 +27,11 @@ function Likes({ user, onMatch }) {
             return profileSnap.exists() ? { ...profileSnap.data(), likedAt: l.createdAt } : null;
           })
       );
-      setLikedMe(profiles.filter(Boolean));
+      // 이성만 필터 (성별 정보 있을 때만)
+      const filteredProfiles = profiles
+        .filter(Boolean)
+        .filter(p => p.gender && userProfile.gender && p.gender !== userProfile.gender);
+      setLikedMe(filteredProfiles);
       setLoading(false);
     };
     fetchLikes();
@@ -178,6 +183,27 @@ function Likes({ user, onMatch }) {
                         {profile.mbti}
                       </span>
                     )}
+                    {(() => {
+                      const badge = getDistanceBadge(userProfile, profile);
+                      if (!badge) return null;
+                      return (
+                        <span style={{
+                          background: badge.bgColor,
+                          color: badge.textColor,
+                          padding: '3px 8px',
+                          borderRadius: 10,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontFamily: 'Nunito, sans-serif',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}>
+                          <span>{badge.emoji}</span>
+                          <span>{badge.label}</span>
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   {/* 액션 버튼 */}

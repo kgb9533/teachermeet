@@ -66,8 +66,17 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
           return createdAt > oneWeekAgo;
         }).length;
 
+        // 오늘의 추천 실제 카운트 (Today.js와 같은 로직)
+        const seenUidsForToday = likesSnap.docs
+          .filter(d => d.data().from === user.uid)
+          .map(d => d.data().to);
+        const todayRecCount = usersSnap.docs
+          .map(d => d.data())
+          .filter(p => p.uid !== user.uid && !seenUidsForToday.includes(p.uid))
+          .length;
+
         setStats({ total, online: Math.floor(total * 0.3) || 0, weeklyMatch });
-        setMyStats({ likedMe, matched: myMatches, iLiked, todayRec: 5 });
+        setMyStats({ likedMe, matched: myMatches, iLiked, todayRec: todayRecCount });
 
         // 최근 활동
         const activities = [];
@@ -177,34 +186,20 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
           </button>
         </div>
 
-        {/* 플랫폼 통계 */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {[
-            { num: stats.total, label: '가입 선생님' },
-            { num: stats.online, label: '오늘 접속중' },
-            { num: stats.weeklyMatch, label: '이번주 매칭' },
-          ].map((s, i) => (
-            <div key={i} style={{ flex: 1, background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, padding: '10px 6px', textAlign: 'center' }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>{s.num}</div>
-              <div style={{ fontSize: 9, color: '#FDBCAA', fontWeight: 600, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+        
 
-        {/* 내 활동 현황 */}
+       {/* 내 활동 현황 (3개 바) */}
         <div>
           <div style={{ fontSize: 13, fontWeight: 800, color: '#3D1008', marginBottom: 10, fontFamily: 'Nunito, sans-serif' }}>내 활동 현황</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             {[
-              { num: myStats.likedMe, label: '나를 좋아해요', hint: '확인해보세요!', onClick: onGoLikes },
-              { num: myStats.matched, label: '매칭됐어요', hint: '채팅해보세요!', onClick: onGoChat },
-              { num: myStats.iLiked, label: '내가 좋아했어요', hint: '설레는 기다림 중', onClick: null },
-              { num: myStats.todayRec, label: '오늘 추천', hint: '새 인연 만나요', onClick: onGoToday },
+              { num: myStats.likedMe, label: '나를 좋아해요', onClick: onGoLikes },
+              { num: myStats.iLiked, label: '내가 좋아했어요', onClick: null },
+              { num: myStats.todayRec, label: '오늘 추천', onClick: onGoToday },
             ].map((s, i) => (
-              <div key={i} onClick={s.onClick} style={{ background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, padding: 14, cursor: s.onClick ? 'pointer' : 'default' }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>{s.num}</div>
-                <div style={{ fontSize: 11, color: '#FDBCAA', fontWeight: 600, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>{s.label}</div>
-                <div style={{ fontSize: 10, color: '#C23B22', fontWeight: 600, marginTop: 4, fontFamily: 'Nunito, sans-serif' }}>{s.hint}</div>
+              <div key={i} onClick={s.onClick} style={{ flex: 1, background: 'white', border: '1.5px solid #FDBCAA', borderRadius: 14, padding: '10px 6px', textAlign: 'center', cursor: s.onClick ? 'pointer' : 'default' }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: '#F4845F', fontFamily: 'Nunito, sans-serif' }}>{s.num}</div>
+                <div style={{ fontSize: 9, color: '#FDBCAA', fontWeight: 600, marginTop: 2, fontFamily: 'Nunito, sans-serif' }}>{s.label}</div>
               </div>
             ))}
           </div>

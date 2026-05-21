@@ -56,7 +56,8 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
         const allUsers = usersSnap.docs
           .map(d => ({ uid: d.id, ...d.data() }))
           .filter(u => u.uid !== user.uid) // 본인 제외
-          .filter(u => u.name && u.age); // 프로필 미완성 제외
+          .filter(u => u.name && u.age) // 프로필 미완성 제외
+          .filter(u => u.gender && userProfile.gender && u.gender !== userProfile.gender); // 이성만
 
         // 2) 이미 좋아요/패스한 사람 가져오기
         const likesSnap = await getDocs(collection(db, 'likes'));
@@ -309,16 +310,6 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
                 {displayShort(currentCard.subject, 2)}
               </div>
               {(() => {
-                console.log('🔍 거리 뱃지 디버그:', {
-                  userProfile_exists: !!userProfile,
-                  userProfile_keys: userProfile ? Object.keys(userProfile) : 'undefined',
-                  myLat: userProfile?.lat,
-                  myLng: userProfile?.lng,
-                  currentCard_exists: !!currentCard,
-                  currentCard_keys: currentCard ? Object.keys(currentCard) : 'undefined',
-                  theirLat: currentCard?.lat,
-                  theirLng: currentCard?.lng,
-                });
                 const badge = getDistanceBadge(userProfile, currentCard);
                 if (!badge) return null;
                 return (
