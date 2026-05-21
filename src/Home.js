@@ -45,7 +45,6 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
       try {
         // 전체 사용자 수
         const usersSnap = await getDocs(collection(db, 'users'));
-        const total = usersSnap.docs.length;
 
         // 나를 좋아한 사람
         const likesSnap = await getDocs(collection(db, 'likes'));
@@ -55,15 +54,6 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
         // 매칭 수
         const matchesSnap = await getDocs(collection(db, 'matches'));
         const myMatches = matchesSnap.docs.filter(d => d.data().users.includes(user.uid)).length;
-
-        // 이번주 매칭
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const weeklyMatch = matchesSnap.docs.filter(d => {
-          const data = d.data();
-          const createdAt = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
-          return createdAt > oneWeekAgo;
-        }).length;
 
         // 오늘의 추천 실제 카운트 (Today.js와 같은 로직)
         const seenUidsForToday = likesSnap.docs
