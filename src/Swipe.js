@@ -97,7 +97,7 @@ function Swipe({ user, userProfile, theme, onMatch, onLogout }) {
       }
     };
     fetchCandidates();
-  }, [user]);
+  }, [user, userProfile.gender]);
 
   // ===== 매칭 처리 함수 =====
   const checkMatch = async (targetUid) => {
