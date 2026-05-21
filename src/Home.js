@@ -23,7 +23,6 @@ const QUOTES = [
 
 function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat, onLogout }) {
   const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
-  const [stats, setStats] = useState({ total: 0, online: 0, weeklyMatch: 0 });
   const [myStats, setMyStats] = useState({ likedMe: 0, matched: 0, iLiked: 0, todayRec: 0 });
   const [recentActivity, setRecentActivity] = useState([]);
   
@@ -75,7 +74,7 @@ function Home({ user, userProfile, onStartMatch, onGoLikes, onGoToday, onGoChat,
           .filter(p => p.uid !== user.uid && !seenUidsForToday.includes(p.uid))
           .length;
 
-        setStats({ total, online: Math.floor(total * 0.3) || 0, weeklyMatch });
+        
         setMyStats({ likedMe, matched: myMatches, iLiked, todayRec: todayRecCount });
 
         // 최근 활동
