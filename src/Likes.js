@@ -35,7 +35,7 @@ function Likes({ user, userProfile, onMatch }) {
       setLoading(false);
     };
     fetchLikes();
-  }, [user]);
+  }, [user, userProfile]);
 
   const handleLikeBack = async (profile) => {
     try {
