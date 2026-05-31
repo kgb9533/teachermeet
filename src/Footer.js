@@ -7,7 +7,7 @@ export const BUSINESS_INFO = {
   businessNumber: '111-25-97394',
   mailOrderNumber: '신청 예정',
   address: '경기도 남양주시 별내면 청학로114번길 17',
-  phone: '010-5260-9533',
+  phone: '070-7698-6800',
   email: 'dbdus1357@naver.com',
   cpoName: '김규보',
   cpoEmail: 'dbdus1357@naver.com',
@@ -47,6 +47,9 @@ export default function Footer({ onNavigate }) {
         </div>
         <div style={styles.bizRow}>
           대표전화 {BUSINESS_INFO.phone} · {BUSINESS_INFO.email}
+        </div>
+        <div style={styles.bizRow}>
+          개인정보 보호책임자 {BUSINESS_INFO.cpoName} ({BUSINESS_INFO.cpoEmail})
         </div>
       </div>
 
