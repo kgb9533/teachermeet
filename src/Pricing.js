@@ -54,7 +54,7 @@ export default function Pricing({ onBack, onCharge }) {
           </table>
           <p style={styles.notice}>
             * 모든 가격은 부가가치세(VAT)가 포함된 금액입니다.<br />
-            * 결제 수단: 신용/체크카드, 카카오페이, 계좌이체 등 (포트원 결제 시스템 이용)
+            * 결제 수단: 신용/체크카드, 계좌이체 등 안전한 결제수단 (결제대행사 승인 후 제공)
           </p>
         </section>
 
